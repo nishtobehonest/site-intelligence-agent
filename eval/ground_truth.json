@@ -1,0 +1,12 @@
+[
+  {
+    "query": "What is the lockout/tagout procedure before performing electrical maintenance on HVAC equipment?",
+    "expected_answer": "OSHA 29 CFR 1910.147 lockout/tagout procedure",
+    "source": "OSHA 1910.147"
+  },
+  {
+    "query": "What are the safety requirements for working with refrigerants under EPA Section 608?",
+    "expected_answer": "EPA 608 certification required, refrigerant recovery procedures",
+    "source": "EPA Section 608"
+  }
+]

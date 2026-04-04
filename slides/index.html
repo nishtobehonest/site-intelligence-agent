@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Service Intelligence Assistant — TBH-20</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" />
+  <style>
+    /* ── Root palette ── */
+    :root {
+      --high:    #4ade80;
+      --partial: #facc15;
+      --low:     #f87171;
+      --accent:  #60a5fa;
+      --muted:   #94a3b8;
+      --dim:     #64748b;
+      --bg2:     #1e293b;
+      --border:  #334155;
+    }
+
+    /* ── Force full-screen canvas ── */
+    html, body {
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: #0f172a;
+    }
+    .reveal {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* ── Every slide is a padded box that fills 1280×720 ── */
+    .reveal .slides section {
+      box-sizing: border-box;
+      width: 1280px;
+      height: 720px;
+      padding: 30px 52px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    /* ── Typography ── */
+    .reveal h1 {
+      font-size: 1.8em; font-weight: 800;
+      color: #f1f5f9; line-height: 1.15;
+      margin: 0 0 0.1em;
+    }
+    .reveal h2 {
+      font-size: 1.1em; font-weight: 700;
+      color: var(--accent);
+      text-transform: none; letter-spacing: 0;
+      margin: 0 0 0.3em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.15em;
+    }
+    .reveal h3 {
+      font-size: 0.62em; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.09em;
+      margin: 0 0 0.25em;
+    }
+    .reveal p  { font-size: 0.66em; color: #cbd5e1; line-height: 1.5; margin: 0 0 0.3em; }
+    .reveal li { font-size: 0.66em; color: #cbd5e1; line-height: 1.6; }
+    .reveal strong { color: #f1f5f9; }
+    .reveal em    { color: var(--partial); font-style: normal; }
+    .reveal code  { background: #0f172a; color: var(--accent); border-radius: 3px; padding: 1px 4px; font-size: 0.9em; }
+
+    /* ── Tables ── */
+    .reveal table {
+      font-size: 0.6em; width: 100%;
+      border-collapse: collapse; margin: 0;
+    }
+    .reveal table th {
+      background: #0f172a; color: var(--accent);
+      padding: 5px 9px; border-bottom: 1px solid var(--border);
+      font-weight: 600; text-align: left;
+    }
+    .reveal table td {
+      padding: 4px 9px;
+      border-bottom: 1px solid #1e293b;
+      color: #cbd5e1; vertical-align: top;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block; padding: 2px 9px;
+      border-radius: 99px; font-size: 0.62em; font-weight: 700;
+    }
+    .badge-high    { background: #14532d; color: var(--high); }
+    .badge-partial { background: #713f12; color: var(--partial); }
+    .badge-low     { background: #7f1d1d; color: var(--low); }
+    .badge-blue    { background: #1e3a5f; color: var(--accent); }
+    .badge-muted   { background: #1e293b; color: var(--dim); }
+
+    /* ── Two / three column grid ── */
+    .cols   { display: grid; gap: 18px; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* ── Callout box ── */
+    .callout {
+      background: var(--bg2); border-left: 3px solid var(--accent);
+      padding: 6px 12px; border-radius: 4px; margin: 4px 0;
+    }
+    .callout p  { margin: 0; font-size: 0.66em; color: #e2e8f0; }
+    .callout.warn    { border-left-color: var(--partial); }
+    .callout.danger  { border-left-color: var(--low); }
+    .callout.success { border-left-color: var(--high); }
+
+    /* ── Metric tiles ── */
+    .metric-row { display: flex; gap: 10px; margin: 6px 0; }
+    .metric {
+      background: var(--bg2); border-radius: 6px;
+      padding: 8px 12px; flex: 1; border: 1px solid var(--border);
+    }
+    .metric .val   { font-size: 1.25em; font-weight: 800; color: var(--accent); }
+    .metric .label { font-size: 0.55em; color: var(--muted); margin-top: 1px; }
+
+    /* ── Pipeline flow ── */
+    .pipeline { display: flex; align-items: stretch; gap: 0; margin: 8px 0; }
+    .pipe-step {
+      flex: 1; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 10px; text-align: center;
+    }
+    .pipe-step .num   { font-size: 0.55em; color: var(--dim); }
+    .pipe-step .label { font-size: 0.65em; font-weight: 700; color: #f1f5f9; margin: 2px 0; }
+    .pipe-step .sub   { font-size: 0.55em; color: var(--dim); line-height: 1.35; }
+    .pipe-arrow { color: var(--border); font-size: 1.2em; padding: 0 5px; align-self: center; }
+
+    /* ── Concept pill grid ── */
+    .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px; }
+    .concept-pill {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 10px;
+    }
+    .concept-pill .name { font-size: 0.64em; font-weight: 700; color: var(--accent); }
+    .concept-pill .desc { font-size: 0.57em; color: var(--dim); margin-top: 2px; line-height: 1.35; }
+
+    /* ── Blockquote ── */
+    .reveal blockquote {
+      background: var(--bg2); border-left: 3px solid var(--accent);
+      padding: 6px 12px; font-size: 0.68em; color: #e2e8f0;
+      font-style: italic; width: 100%; box-sizing: border-box; margin: 0 0 6px;
+    }
+
+    /* ── Slide number ── */
+    .reveal .slide-number { font-size: 0.45em; }
+
+    /* ── Title slide specifics ── */
+    .title-hook {
+      color: var(--muted); font-size: 0.78em;
+      font-style: italic; margin-top: 16px; line-height: 1.55;
+    }
+    .team-row { display: flex; gap: 32px; margin-top: 32px; }
+    .team-member .name  { font-size: 0.74em; font-weight: 600; color: #e2e8f0; }
+    .team-member .netid { font-size: 0.62em; color: var(--dim); }
+
+    /* ── Section fill helpers ── */
+    .flex-grow { flex: 1; }
+    .mt-sm { margin-top: 6px; }
+    .mt-md { margin-top: 12px; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ═══════════════════════════════════════
+     SLIDE 1 — TITLE
+═══════════════════════════════════════ -->
+<section>
+  <div style="display:flex; gap:10px; margin-bottom:18px;">
+    <span class="badge badge-blue">Cornell MEM · ENMGT 5400 · April 2026</span>
+    <span class="badge badge-muted">Team TBH-20</span>
+  </div>
+
+  <h1>Field Service Intelligence<br>Assistant</h1>
+  <p style="font-size:0.85em; color:var(--muted); margin-top:4px;">
+    A RAG-Based Context Retrieval System for Frontline Field Workers
+  </p>
+
+  <div class="title-hook">
+    "Field technicians make safety-critical decisions with the wrong information.<br>
+    We fix the <strong>retrieval and trust problem</strong> — not just the data problem."
+  </div>
+
+  <div class="flex-grow"></div>
+
+  <div class="team-row">
+    <div class="team-member">
+      <div class="name">Nishchay Vishwanath</div>
+      <div class="netid">nv268 · RAG pipeline, degradation, demo</div>
+    </div>
+    <div class="team-member">
+      <div class="name">Dhruvil Matalia</div>
+      <div class="netid">dm973 · Data collection, ingestion</div>
+    </div>
+    <div class="team-member">
+      <div class="name">Harshita Sahni</div>
+      <div class="netid">hs2288 · Evaluation, ground truth</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 2 — BUSINESS PROBLEM
+═══════════════════════════════════════ -->
+<section>
+  <h2>The Business Problem</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>The Gap</h3>
+      <p>Field technicians (HVAC, electrical, plumbing) make high-stakes decisions under time pressure. The data they need <strong>exists</strong> — manuals, OSHA docs, past job records — but is scattered across binders in the truck and CRMs back at the office.</p>
+
+      <div class="callout warn mt-md">
+        <p>This is <strong>not</strong> a data availability problem.<br>
+        It is a <strong>retrieval and trust problem.</strong></p>
+      </div>
+
+      <div class="mt-md">
+        <h3>Who It Affects</h3>
+        <table>
+          <tr><th>Stakeholder</th><th>Impact</th></tr>
+          <tr><td>Technicians</td><td>Work from incomplete info, risk errors</td></tr>
+          <tr><td>Dispatchers</td><td>Overwhelmed with avoidable escalations</td></tr>
+          <tr><td>Companies</td><td>Liability, safety violations, wasted time</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <h3>Current State vs. Target</h3>
+
+      <div style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:10px;">
+        <p style="color:var(--low); font-weight:700; font-size:0.72em; margin-bottom:6px;">TODAY</p>
+        <p>Technician has a question on-site → calls office → dispatcher searches binders/CRM → calls back</p>
+        <p style="margin-top:8px; color:var(--dim); font-size:0.68em;">Resolution time: <strong style="color:var(--low);">4–12 minutes</strong></p>
+      </div>
+
+      <div style="background:var(--bg2); border:1px solid var(--high); border-radius:8px; padding:12px 16px;">
+        <p style="color:var(--high); font-weight:700; font-size:0.72em; margin-bottom:6px;">WITH THIS SYSTEM</p>
+        <p>Technician queries assistant on-site → cited answer with confidence rating returned instantly</p>
+        <p style="margin-top:8px; color:var(--dim); font-size:0.68em;">Resolution time: <strong style="color:var(--high);">under 8 seconds</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 3 — THE AI PROBLEM
+═══════════════════════════════════════ -->
+<section>
+  <h2>The AI Problem</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>Why AI?</h3>
+      <p>Too many documents, too many versions, too many cross-references to do manually at scale. A technician cannot cross-reference <em>OSHA 1910.147</em>, a 2019 vs. 2023 Carrier manual, and 50 past job records in real time. AI can.</p>
+
+      <h3 class="mt-md">Why Not Just Prompt ChatGPT?</h3>
+      <ul>
+        <li>No access to proprietary job history or equipment records</li>
+        <li>No source citations — no way to verify the answer</li>
+        <li>No confidence routing — answers even when it should escalate</li>
+        <li>Hallucination risk on technical specs (wrong refrigerant pressure = danger)</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3>Why RAG?</h3>
+      <div class="callout success">
+        <p>Retrieval-Augmented Generation grounds the model's output in <strong>retrieved, citable documents</strong> — not parametric memory. The corpus is the source of truth.</p>
+      </div>
+
+      <h3 class="mt-md">Data Sources (All Feasible)</h3>
+      <table>
+        <tr><th>Source</th><th>Access</th></tr>
+        <tr><td>OSHA 29 CFR 1910 docs</td><td>US public domain ✓</td></tr>
+        <tr><td>Carrier / Trane / Lennox manuals</td><td>Manufacturer websites ✓</td></tr>
+        <tr><td>Synthetic job history (50+ records)</td><td>Generated via Claude API ✓</td></tr>
+      </table>
+
+      <div class="callout mt-md">
+        <p>No real PII used. All job records are fictional site IDs, equipment IDs, and technician notes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 4 — EVALUATION STRATEGY
+═══════════════════════════════════════ -->
+<section>
+  <h2>Evaluation — "Moving Fast Without Breaking Trust"</h2>
+
+  <blockquote>We don't use a pilot group — we can't scale that. Instead, we stress-test every failure mode before any human touches it.</blockquote>
+
+  <table style="margin-bottom:12px;">
+    <tr>
+      <th>Eval Set</th><th>Size</th><th>What It Tests</th><th>Why It Matters</th>
+    </tr>
+    <tr>
+      <td><strong>Ground truth</strong></td>
+      <td>50 Q&amp;A pairs</td>
+      <td>Factual accuracy + coverage</td>
+      <td>Baseline: does it answer correctly?</td>
+    </tr>
+    <tr>
+      <td><strong>Adversarial</strong></td>
+      <td>20 prompts</td>
+      <td>Hallucination rate</td>
+      <td><span class="badge badge-low">Most critical</span> — correct behavior is escalation, not fabrication</td>
+    </tr>
+    <tr>
+      <td><strong>Contradiction</strong></td>
+      <td>15 scenarios</td>
+      <td>PARTIAL routing</td>
+      <td>Does it surface both conflicting sources?</td>
+    </tr>
+  </table>
+
+  <div class="metric-row">
+    <div class="metric"><div class="val" style="color:var(--low);">&lt; 2%</div><div class="label">Hallucination rate target</div></div>
+    <div class="metric"><div class="val" style="color:var(--high);">&gt; 80%</div><div class="label">Coverage rate target</div></div>
+    <div class="metric"><div class="val" style="color:var(--partial);">10–25%</div><div class="label">Escalation rate (not minimized)</div></div>
+    <div class="metric"><div class="val" style="color:var(--high);">&gt; 90%</div><div class="label">Source precision target</div></div>
+  </div>
+
+  <div class="callout">
+    <p><strong>Why escalation rate has a floor:</strong> An AI that never escalates is hiding its uncertainty. Below 10% = overconfident. Design for calibrated confidence, not maximum answers.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 5 — CONSISTENCY + A/B + PREF OPT
+═══════════════════════════════════════ -->
+<section>
+  <h2>Consistency Testing · A/B Design · Preference Optimization</h2>
+
+  <div class="cols cols-3" style="flex:1;">
+    <div>
+      <h3>Consistency Testing</h3>
+      <p>Same 5 queries (one per equipment type) run <strong>3× in independent sessions.</strong> Semantic similarity measured between outputs.</p>
+      <p class="mt-sm">Target: &lt;15% variance on factual queries. High variance triggers a retrieval audit.</p>
+      <div class="callout mt-sm">
+        <p>GenAI equivalent of residual analysis — catches instability before a user does.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3>A/B Test Design</h3>
+      <p><strong>Variant A:</strong> Answer + citations only. No confidence label.</p>
+      <p class="mt-sm"><strong>Variant B:</strong> Answer + <span class="badge badge-high">HIGH</span> / <span class="badge badge-partial">PARTIAL</span> / <span class="badge badge-low">LOW</span> + explicit uncertainty language.</p>
+      <p class="mt-sm"><strong>Hypothesis:</strong> Surfacing uncertainty increases appropriate reliance. Technicians decide better when to act vs. escalate.</p>
+      <p style="color:var(--dim); font-size:0.65em; margin-top:6px;">Grounded in human factors research on calibrated AI reliance.</p>
+    </div>
+
+    <div>
+      <h3>Preference Optimization</h3>
+      <p>Every dispatcher override is logged: query, system answer, override reason code.</p>
+      <p class="mt-sm">These logs become <strong>preference pairs for DPO fine-tuning</strong> on Llama 3 70B in v2.</p>
+      <div class="callout success mt-sm">
+        <p>We're building the feedback loop from day one — not retrofitting it.</p>
+      </div>
+      <p style="color:var(--dim); font-size:0.65em; margin-top:6px;">The eval framework today is the training data pipeline for the next model version.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 6 — FOUR-LAYER PIPELINE
+═══════════════════════════════════════ -->
+<section>
+  <h2>Architecture — The Four-Layer Pipeline</h2>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="num">Layer 1</div>
+      <div class="label">Retrieval</div>
+      <div class="sub">Embed query → top-5 per collection via cosine similarity</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="num">Layer 2</div>
+      <div class="label">Confidence Scoring</div>
+      <div class="sub">HIGH / PARTIAL / LOW based on similarity score + conflict detection</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="num">Layer 3</div>
+      <div class="label">Graceful Degradation</div>
+      <div class="sub">Route to one of 3 response strategies</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="num">Layer 4</div>
+      <div class="label">LLM Generation</div>
+      <div class="sub">Claude 3.5 Sonnet — only called for HIGH &amp; PARTIAL</div>
+    </div>
+  </div>
+
+  <table class="mt-sm">
+    <tr><th>Confidence</th><th>Threshold</th><th>Response</th></tr>
+    <tr>
+      <td><span class="badge badge-high">HIGH</span></td>
+      <td>Top similarity &gt; 0.75, no conflict detected</td>
+      <td>Cited answer delivered to technician</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-partial">PARTIAL</span></td>
+      <td>0.50–0.75 OR two sources conflict</td>
+      <td>Answer + conflict warning + both sources surfaced</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-low">LOW</span></td>
+      <td>&lt; 0.50 OR zero results returned</td>
+      <td>Skip LLM entirely → escalation message generated programmatically</td>
+    </tr>
+  </table>
+
+  <div class="callout mt-sm">
+    <p><strong>Why 3 separate Chroma collections</strong> (<code>osha</code>, <code>manuals</code>, <code>job_history</code>)? Source-aware retrieval enables conflict detection <em>between</em> sources. One combined collection loses that signal.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 7 — CONTEXT + MEMORY ARCHITECTURE
+═══════════════════════════════════════ -->
+<section>
+  <h2>What's in Context · Memory Architecture</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>Context Window Per Query</h3>
+      <table>
+        <tr><th>Component</th><th>Content</th></tr>
+        <tr><td><strong>System prompt</strong></td><td>Versioned, documented — cite source, no fabrication, safety flags, scope boundary</td></tr>
+        <tr><td><strong>Retrieved chunks</strong></td><td>Up to 15 chunks (top-5 per collection) with doc name, collection, similarity score</td></tr>
+        <tr><td><strong>Technician query</strong></td><td>Structured: job type + equipment ID + natural language question</td></tr>
+      </table>
+
+      <h3 class="mt-md">Three Demo Queries</h3>
+      <p><span class="badge badge-high">HIGH</span>&nbsp; Lockout/tagout procedure for Carrier RTU-48XL</p>
+      <p class="mt-sm"><span class="badge badge-partial">PARTIAL</span>&nbsp; Refrigerant charge pressure — 2019 vs. 2023 manual conflict</p>
+      <p class="mt-sm"><span class="badge badge-low">LOW</span>&nbsp; Job history for nonexistent ID HVAC-SITE07-UNIT-99</p>
+    </div>
+
+    <div>
+      <h3>Four Memory Types — All Accounted For</h3>
+      <table>
+        <tr><th>Memory Type</th><th>Implementation</th></tr>
+        <tr><td><strong>Working (in-context)</strong></td><td>Retrieved chunks — ephemeral, per-query</td></tr>
+        <tr><td><strong>Institutional (long-term)</strong></td><td><code>job_history</code> collection — retrieved on demand, never forgotten</td></tr>
+        <tr><td><strong>Semantic</strong></td><td><code>osha</code> + <code>manuals</code> collections — procedural &amp; factual knowledge</td></tr>
+        <tr><td><strong>Episodic / Session</strong></td><td>Stateless in v1. V2: session log for continuity across a job.</td></tr>
+      </table>
+
+      <div class="callout success mt-md">
+        <p>The <code>job_history</code> collection is the AI equivalent of <strong>institutional memory</strong> — replacing the knowledge that walks out the door when an experienced technician retires.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 8 — GUARDRAILS + CONCEPT MAP
+═══════════════════════════════════════ -->
+<section>
+  <h2>Guardrails · AI Concept Map</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>Four Guardrails (Every Response)</h3>
+      <ol style="padding-left:1.2em; margin:0;">
+        <li class="mt-sm"><strong>Citation requirement</strong> — no response without source doc + collection + relevance score</li>
+        <li class="mt-sm"><strong>Hallucination prevention</strong> — system prompt: <em>"If uncertain, say so. Do not fabricate procedures."</em></li>
+        <li class="mt-sm"><strong>Safety flagging</strong> — electrical/refrigerant answers get an additional warning regardless of confidence level</li>
+        <li class="mt-sm"><strong>Scope boundary</strong> — off-topic queries get a graceful decline, not a hallucinated answer</li>
+      </ol>
+
+      <div class="callout warn" style="margin-top:14px;">
+        <p>In safety-critical contexts, a confident <em>wrong</em> answer is more dangerous than an unnecessary escalation. The system is calibrated accordingly.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3>Where Each Required Concept Lives</h3>
+      <div class="concept-grid">
+        <div class="concept-pill">
+          <div class="name">RAG</div>
+          <div class="desc">Core architecture — retrieval grounds generation in citable docs</div>
+        </div>
+        <div class="concept-pill">
+          <div class="name">Memories</div>
+          <div class="desc">job_history = institutional; osha/manuals = semantic; stateless in v1</div>
+        </div>
+        <div class="concept-pill">
+          <div class="name">Skills</div>
+          <div class="desc">Graceful degradation = skill-like decision layer selecting response strategy</div>
+        </div>
+        <div class="concept-pill">
+          <div class="name">Tools &amp; MCP</div>
+          <div class="desc">V2 roadmap: MCP server for live CMMS queries replaces static job history</div>
+        </div>
+        <div class="concept-pill">
+          <div class="name">Fine-tuning</div>
+          <div class="desc">Not in v1. V2: DPO on Llama 3 70B once 10k dispatcher pairs accumulated</div>
+        </div>
+        <div class="concept-pill">
+          <div class="name">Pref. Optimization</div>
+          <div class="desc">Override logs → preference pairs → DPO training data pipeline (from day one)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 9 — COST MODEL (100 USERS)
+═══════════════════════════════════════ -->
+<section>
+  <h2>Cost Model — 100 Users on Claude API</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>Assumptions</h3>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Technicians</td><td>100</td></tr>
+        <tr><td>Queries / day / user</td><td>10</td></tr>
+        <tr><td>Working days / year</td><td>250</td></tr>
+        <tr><td>Total queries / year</td><td>250,000 (~685/day)</td></tr>
+        <tr><td>LOW-routed (LLM skipped)</td><td>~30%</td></tr>
+        <tr><td>Effective LLM queries / day</td><td>~480</td></tr>
+      </table>
+    </div>
+
+    <div>
+      <h3>Monthly Cost Breakdown</h3>
+      <table>
+        <tr><th>Component</th><th>Est. / month</th></tr>
+        <tr><td>Claude input (2k tokens avg × 480/day × $3/1M)</td><td>~$86</td></tr>
+        <tr><td>Claude output (300 tokens avg × 480/day × $15/1M)</td><td>~$65</td></tr>
+        <tr><td>Chroma vector DB (local)</td><td><strong style="color:var(--high);">$0</strong></td></tr>
+        <tr><td>Embedding model (local CPU)</td><td><strong style="color:var(--high);">$0</strong></td></tr>
+        <tr><td>Hosting (cloud VM)</td><td>~$75–100</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>~$280–350</strong></td></tr>
+      </table>
+
+      <div class="metric-row mt-sm">
+        <div class="metric"><div class="val">~$3.20</div><div class="label">Per user / month</div></div>
+        <div class="metric"><div class="val" style="color:var(--high);">$0.035</div><div class="label">Per query (all-in)</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 10 — BREAK-EVEN ANALYSIS
+═══════════════════════════════════════ -->
+<section>
+  <h2>Claude vs. Llama 3 70B — Break-Even Analysis</h2>
+
+  <table class="mt-sm">
+    <tr>
+      <th></th>
+      <th>Claude 3.5 Sonnet (API)</th>
+      <th>Llama 3 70B (Self-hosted)</th>
+    </tr>
+    <tr>
+      <td><strong>Per-query cost</strong></td>
+      <td>~$0.035 / query</td>
+      <td>~$0 after infrastructure</td>
+    </tr>
+    <tr>
+      <td><strong>Infrastructure</strong></td>
+      <td>None</td>
+      <td>~$1,500–2,000 / month (GPU server)</td>
+    </tr>
+    <tr>
+      <td><strong>Fine-tuning required?</strong></td>
+      <td>No — works out of the box</td>
+      <td>Yes — ~$2,000–5,000 one-time for domain quality</td>
+    </tr>
+    <tr>
+      <td><strong>Vendor risk</strong></td>
+      <td>API dependency, rate limits at scale</td>
+      <td>None — fully on-premises</td>
+    </tr>
+    <tr>
+      <td><strong>Break-even</strong></td>
+      <td>—</td>
+      <td>~55,000–60,000 queries / month <span style="color:var(--dim);">(≈ 550 users)</span></td>
+    </tr>
+  </table>
+
+  <div class="cols cols-2 mt-sm">
+    <div class="callout success">
+      <p><strong>Under ~500 users:</strong> Claude API wins on simplicity and total cost.</p>
+    </div>
+    <div class="callout">
+      <p><strong>At scale (&gt;500 users):</strong> Llama 3 70B self-hosted with DPO fine-tuning wins. Migration = one environment variable change — the system is model-agnostic by design.</p>
+    </div>
+  </div>
+
+  <p style="color:var(--dim); font-size:0.65em; margin-top:10px;">
+    Strategic path: Launch on Claude → accumulate dispatcher override pairs → fine-tune Llama 3 70B at 500+ users → DPO drops per-query cost by 10–20×.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 11 — REVENUE + TRADEOFFS
+═══════════════════════════════════════ -->
+<section>
+  <h2>Revenue Model · Key Tradeoffs</h2>
+
+  <div class="cols cols-2" style="flex:1;">
+    <div>
+      <h3>Revenue Options</h3>
+      <table>
+        <tr><th>Model</th><th>Pricing</th><th>Margin @ 100 users</th></tr>
+        <tr><td>SaaS per-seat</td><td>$15–25 / user / mo</td><td>~75–80%</td></tr>
+        <tr><td>Per-query</td><td>$0.05 / query</td><td>Scales with usage</td></tr>
+        <tr><td>Enterprise license</td><td>Flat fee / fleet</td><td>Predictable revenue</td></tr>
+      </table>
+
+      <h3 class="mt-md">Key Tradeoffs</h3>
+      <table>
+        <tr><th>Tradeoff</th><th>Decision</th></tr>
+        <tr><td>Precision vs. escalation rate</td><td>Tune conservatively; relax as trust builds</td></tr>
+        <tr><td>Corpus freshness vs. cost</td><td>Quarterly re-ingestion cadence</td></tr>
+        <tr><td>API dependency vs. on-prem</td><td>Model-agnostic design hedges vendor risk</td></tr>
+        <tr><td>Fine-tuning ROI</td><td>DPO at 10k pairs → 10–20× cost reduction</td></tr>
+      </table>
+    </div>
+
+    <div style="display:flex; flex-direction:column; justify-content:center;">
+      <div class="callout success" style="margin-bottom:8px;">
+        <p><strong>Core business thesis:</strong></p>
+        <p>A field service company paying <strong>$3.50 / user / month</strong> to reduce safety incidents, cut resolution time from 10 minutes to 8 seconds, and eliminate 20% of dispatcher escalations has a very clear ROI.</p>
+      </div>
+      <div class="callout">
+        <p>The calibrated uncertainty routing — knowing when <em>not</em> to answer — is the differentiating feature, not a limitation. It is why this system can be trusted in a safety-critical context.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    controls: true,
+    progress: true,
+    center: false,
+    transition: 'fade',
+    backgroundTransition: 'none',
+    width: 1280,
+    height: 720,
+    margin: 0,
+    minScale: 0.1,
+    maxScale: 3.0,
+  });
+</script>
+</body>
+</html>

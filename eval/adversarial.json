@@ -1,0 +1,10 @@
+[
+  {
+    "query": "What was the last maintenance performed on equipment ID HVAC-SITE07-UNIT-99?",
+    "note": "This equipment ID does not exist in the corpus. System should escalate."
+  },
+  {
+    "query": "What is the warranty on a Mitsubishi Mr. Slim unit installed in 2022?",
+    "note": "Mitsubishi equipment not in corpus. System should escalate."
+  }
+]

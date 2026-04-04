@@ -1,0 +1,6 @@
+[
+  {
+    "query": "What is the recommended refrigerant charge pressure for a Carrier rooftop unit?",
+    "note": "Different manual versions may list different pressures. System should surface conflict."
+  }
+]

@@ -1,0 +1,32 @@
+# Environment
+.env
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Chroma DB (local vector store - rebuild from source docs)
+data/chroma_db/
+
+# Processed data (rebuild from raw)
+data/processed/
+
+# VS Code
+.vscode/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+eval_results.csv
