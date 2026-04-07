@@ -30,3 +30,7 @@ Thumbs.db
 # Logs
 *.log
 eval_results.csv
+
+# Claude Code local settings
+.claude/
+slides/.claude/

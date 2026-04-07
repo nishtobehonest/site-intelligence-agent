@@ -7,8 +7,8 @@ Returns ranked results with source metadata and similarity scores.
 
 import os
 from dotenv import load_dotenv
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 
@@ -50,9 +50,9 @@ def retrieve(query: str, collections: dict, top_k: int = TOP_K) -> list[dict]:
         try:
             docs_and_scores = vectorstore.similarity_search_with_score(query, k=top_k)
             for doc, score in docs_and_scores:
-                # Chroma returns L2 distance; convert to similarity (lower = more similar)
-                # Normalize to 0-1 range where 1 = most similar
-                similarity = max(0.0, 1.0 - score)
+                # Chroma returns L2 distance for unit-normalized vectors (sentence-transformers).
+                # Correct conversion to cosine similarity: cosine_sim = 1 - (L2_dist² / 2)
+                similarity = max(0.0, 1.0 - (score ** 2) / 2)
                 results.append({
                     "content": doc.page_content,
                     "source": doc.metadata.get("source", "unknown"),
@@ -70,19 +70,46 @@ def retrieve(query: str, collections: dict, top_k: int = TOP_K) -> list[dict]:
 
 def detect_conflicts(results: list[dict]) -> bool:
     """
-    Simple conflict detection: check if top results come from different
-    collections and have similar scores (within 0.1 of each other).
-    This is a heuristic — expand in eval phase based on real conflicts found.
+    Conflict detection: two heuristics checked in order.
+
+    1. Cross-collection conflict (top 3): results from different collections
+       with scores within 0.15 of each other. Catches OSHA vs manual disagreements.
+
+    2. Within-collection version conflict (top 6): multiple source files from
+       the same collection with their best scores within 0.15 of each other.
+       Catches two versions of the same manual (e.g., carrier-48lc-2017 vs 2023).
     """
     if len(results) < 2:
         return False
 
-    top_results = results[:3]
-    collections_seen = set(r["collection"] for r in top_results)
-    top_scores = [r["score"] for r in top_results]
+    # --- Heuristic 1: cross-collection (original) ---
+    top3 = results[:3]
+    top3_scores = [r["score"] for r in top3]
+    collections_seen = set(r["collection"] for r in top3)
+    if len(collections_seen) > 1 and (max(top3_scores) - min(top3_scores)) < 0.15:
+        return True
 
-    # Conflict if: multiple collections in top results AND scores are close
-    multiple_sources = len(collections_seen) > 1
-    scores_close = (max(top_scores) - min(top_scores)) < 0.15
+    # --- Heuristic 2: within-collection version conflict ---
+    # For each collection, find distinct source files in the top-6 window.
+    # If a collection has results from 2+ source files with close best scores,
+    # flag as conflict (likely two versions of the same document).
+    top6 = results[:6]
+    by_collection: dict[str, dict[str, float]] = {}
+    for r in top6:
+        col = r["collection"]
+        src = r["source"]
+        if col not in by_collection:
+            by_collection[col] = {}
+        # Track best score per source file
+        if src not in by_collection[col] or r["score"] > by_collection[col][src]:
+            by_collection[col][src] = r["score"]
 
-    return multiple_sources and scores_close
+    for col, source_scores in by_collection.items():
+        if len(source_scores) > 1:
+            scores = list(source_scores.values())
+            # Require at least one source to have a meaningful score; avoids
+            # triggering on low-scoring noise spread across multiple documents.
+            if max(scores) >= 0.50 and (max(scores) - min(scores)) < 0.15:
+                return True
+
+    return False

@@ -20,7 +20,7 @@ DEMO_QUERIES = [
     {
         "label": "DEMO 1: HIGH CONFIDENCE",
         "description": "Clear question with a well-documented answer in the corpus.",
-        "query": "What is the lockout/tagout procedure before performing electrical maintenance on HVAC equipment?"
+        "query": "What are the steps for the lockout tagout energy control procedure?"
     },
     {
         "label": "DEMO 2: PARTIAL CONFIDENCE (conflict)",
@@ -29,8 +29,8 @@ DEMO_QUERIES = [
     },
     {
         "label": "DEMO 3: LOW CONFIDENCE (escalation)",
-        "description": "Question about equipment or job with no matching record in the corpus.",
-        "query": "What was the last maintenance performed on equipment ID HVAC-SITE07-UNIT-99?"
+        "description": "Question about equipment not covered in the corpus — triggers escalation.",
+        "query": "What are the repair procedures for a Daikin VRV system model DX300?"
     }
 ]
 

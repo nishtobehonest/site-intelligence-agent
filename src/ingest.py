@@ -19,9 +19,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, DirectoryLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 
@@ -71,7 +71,7 @@ def load_documents(source_dir: str):
             with open(file) as f:
                 records = json.load(f)
             # Convert JSON records to LangChain Document format
-            from langchain.schema import Document
+            from langchain_core.documents import Document
             for record in records:
                 content = json.dumps(record)
                 metadata = {"source": str(file), "job_id": record.get("job_id", "unknown")}

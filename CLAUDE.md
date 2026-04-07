@@ -1,263 +1,137 @@
-# Field Service Intelligence Assistant
-## Claude Code Project Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ---
 
 ## What This Project Is
 
-A RAG-based (Retrieval-Augmented Generation) Field Service Intelligence Assistant built for Cornell MEM AI for Building Solutions capstone (Team TBH-20). The system helps frontline field workers (HVAC technicians, inspectors, field engineers) retrieve relevant documentation, past job history, and compliance requirements in real time during a job.
+A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, Team TBH-20, submission April 8 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
-**This is a minimal working prototype, not a production system.** The goal is a live RAG query that takes a technician question and returns a cited, reliable answer — with explicit handling for when the context is incomplete or contradictory.
-
----
-
-## Stack
-
-- **Language:** Python 3.11+
-- **LLM API:** Anthropic (Claude 3.5 Sonnet via `anthropic` SDK)
-- **Vector store:** Chroma (local, no signup required)
-- **Embedding model:** `sentence-transformers/all-MiniLM-L6-v2` (free, local)
-- **RAG framework:** LangChain
-- **Interface:** Simple CLI for demo purposes (no frontend needed for prototype)
+**Prototype only** — CLI interface, no auth, no frontend, no production deployment.
 
 ---
 
-## Repo Structure
-
-```
-field-service-assistant/
-├── CLAUDE.md                  # This file — read first
-├── README.md                  # Project overview
-├── requirements.txt           # All dependencies
-├── .env.example               # API key template (never commit .env)
-├── .gitignore
-│
-├── data/
-│   ├── raw/                   # Raw source documents (PDFs, txt)
-│   │   ├── osha/              # OSHA field documentation
-│   │   ├── manuals/           # Equipment maintenance manuals
-│   │   └── job_history/       # Synthetic job history records
-│   └── processed/             # Chunked and cleaned documents
-│
-├── src/
-│   ├── ingest.py              # Document loading, chunking, embedding, Chroma indexing
-│   ├── retriever.py           # Query embedding, vector similarity search, top-k retrieval
-│   ├── confidence.py          # Confidence scoring logic and routing decisions
-│   ├── degradation.py         # Graceful degradation: HIGH / PARTIAL / LOW routing
-│   ├── assistant.py           # Main assistant pipeline: query in, answer out
-│   └── generate_synthetic.py  # Script to generate synthetic job history using Claude API
-│
-├── eval/
-│   ├── ground_truth.json      # 50 curated query-answer pairs
-│   ├── adversarial.json       # 20 queries with no correct answer in corpus
-│   ├── contradictions.json    # 15 contradiction scenarios
-│   └── run_eval.py            # Evaluation runner: outputs metrics table
-│
-├── demo/
-│   └── demo.py                # CLI demo script for live presentation
-│
-└── tests/
-    └── test_degradation.py    # Unit tests for the three failure mode paths
-```
-
----
-
-## Core System Design
-
-### The Four Layers
-
-**Layer 1: Retrieval (RAG Core)**
-- Takes a structured technician query
-- Embeds it using sentence-transformers
-- Retrieves top-5 relevant chunks from three Chroma collections (osha, manuals, job_history)
-- Returns ranked context with source metadata
-
-**Layer 2: Confidence Scoring (`confidence.py`)**
-- Evaluates retrieved context quality
-- Inputs: cosine similarity scores, source freshness tag, number of results returned
-- Outputs: confidence level (HIGH / PARTIAL / LOW) and reason
-- Thresholds (starting point, tune during eval):
-  - HIGH: top result similarity > 0.75, at least 2 results above 0.60
-  - PARTIAL: top result similarity 0.50-0.75, OR two results conflict on same topic
-  - LOW: top result similarity < 0.50, OR zero results returned
-
-**Layer 3: Graceful Degradation (`degradation.py`)**
-This is the core differentiator. Three routing paths:
-
-| Confidence | Action |
-|------------|--------|
-| HIGH | Return answer with source citations |
-| PARTIAL | Return answer WITH explicit conflict flag: "Two sources disagree. Source A says X, Source B says Y." |
-| LOW | Return escalation message: "I did not find sufficient information for [query]. Here is what I found: [partial context]. Recommend contacting office." |
-
-**Layer 4: Answer Generation (`assistant.py`)**
-- Takes retrieved context + confidence level + routing decision
-- Calls Claude API with a structured system prompt
-- System prompt enforces: no hallucination, citation required, explicit uncertainty language for PARTIAL/LOW
-- Returns final answer to the technician
-
----
-
-## Data Sources
-
-### OSHA Documentation
-- Source: https://www.osha.gov/enforcement/directives/cpl-02-00-164
-- What to download: Field Operations Manual sections relevant to HVAC, electrical, and plumbing inspection
-- Also useful: OSHA 29 CFR 1910 Subpart S (electrical), 1910.303, 1910.147 (lockout/tagout)
-
-### Equipment Manuals
-- Source: public manufacturer documentation
-- Good starting points: Carrier HVAC manuals (publicly available on carrierhvac.com), Trane technical manuals
-- Target: 3-5 manuals covering different equipment types
-
-### Synthetic Job History
-- Generated using `generate_synthetic.py` (calls Claude API)
-- Schema per record:
-  ```json
-  {
-    "job_id": "JOB-001",
-    "date": "2024-11-15",
-    "equipment_id": "CARRIER-RTU-48XL",
-    "job_type": "preventive_maintenance",
-    "site_id": "SITE-CHICAGO-03",
-    "technician_notes": "...",
-    "anomalies_flagged": ["..."],
-    "resolution": "...",
-    "compliance_notes": "..."
-  }
-  ```
-- Generate at least 50 records covering 5 equipment types and 3 job types
-
----
-
-## Key Design Decisions (Do Not Change Without Discussion)
-
-1. **Confidence thresholds are product decisions, not engineering ones.** When tuning thresholds, ask: what is the cost of a false positive (confident wrong answer) vs a false negative (unnecessary escalation)? In a safety-critical field context, false positives are more dangerous. Tune conservatively.
-
-2. **The system prompt must enforce no hallucination.** The Claude system prompt must include explicit instruction: "If you are not certain, say so. Do not fabricate procedures or specifications. Always cite your source."
-
-3. **Source citations are mandatory on every answer.** No response is returned to the user without at least one source citation (document name, section, date).
-
-4. **Graceful degradation is a first-class feature, not an edge case.** The demo must show all three routing paths: HIGH, PARTIAL, and LOW. Prepare demo queries that trigger each one deliberately.
-
-5. **Chroma uses three separate collections** (osha, manuals, job_history), not one combined collection. This allows source-aware retrieval and makes conflict detection between sources possible.
-
----
-
-## Evaluation Plan
-
-### Metrics to Track
-- **Hallucination rate:** confident wrong answers / total responses (target: below 2%)
-- **Escalation rate:** LOW confidence routes / total queries (target: 10-25%)
-- **Coverage rate:** queries with at least one relevant result / total queries (target: above 80%)
-- **Conflict detection rate:** PARTIAL routes correctly identified / total contradiction scenarios
-
-### Eval Sets (in eval/)
-- `ground_truth.json`: 50 query-answer pairs. Built from OSHA docs and manuals. Correct answer is a specific section or spec.
-- `adversarial.json`: 20 queries with no correct answer in the corpus. Correct system behavior is LOW confidence escalation, not a hallucinated answer.
-- `contradictions.json`: 15 scenarios where two sources say different things. Correct system behavior is PARTIAL route with both sources surfaced.
-
-### Running Eval
-```bash
-python eval/run_eval.py --collection all --output eval_results.csv
-```
-
----
-
-## Demo Script (for presentation)
-
-Three queries to demo live, one per routing path:
-
-**HIGH confidence query:**
-"What is the lockout/tagout procedure for a Carrier RTU-48XL before performing electrical maintenance?"
-Expected: cited answer from OSHA 1910.147 + Carrier manual
-
-**PARTIAL confidence query (contradiction):**
-"What is the recommended refrigerant charge pressure for a Carrier RTU-48XL?"
-Expected: system flags that the 2019 manual and 2023 manual list different values, surfaces both
-
-**LOW confidence query (incomplete context):**
-"What was the last maintenance performed on equipment ID HVAC-SITE07-UNIT-99?"
-Expected: system escalates with "I did not find a job history record for this equipment ID"
-
----
-
-## Environment Setup
+## Commands
 
 ```bash
-# Clone and install
-git clone https://github.com/[your-username]/field-service-assistant
-cd field-service-assistant
+# Install
 pip install -r requirements.txt
+cp .env.example .env   # then add ANTHROPIC_API_KEY
 
-# Set up environment variables
-cp .env.example .env
-# Add your ANTHROPIC_API_KEY to .env
-
-# Ingest documents (run after adding files to data/raw/)
+# Ingest documents into Chroma (run after adding files to data/raw/)
 python src/ingest.py
 
-# Run the assistant
+# Run interactive demo or three preset demo queries
 python demo/demo.py
 
-# Run evaluation
+# Generate synthetic job history (50 records via Claude API)
+python src/generate_synthetic.py
+
+# Run full evaluation suite → prints metrics table + saves eval_results.csv
 python eval/run_eval.py
+
+# Run unit tests
+pytest tests/
 ```
 
+**Tuning confidence thresholds without code changes:**
+```bash
+CONFIDENCE_HIGH_THRESHOLD=0.80 CONFIDENCE_PARTIAL_THRESHOLD=0.55 python demo/demo.py
+```
+Or set these in `.env`. Raising `HIGH_THRESHOLD` reduces hallucination risk; raising `PARTIAL_THRESHOLD` increases escalation rate.
+
 ---
 
-## Dependencies (requirements.txt)
+## Architecture
+
+The pipeline in `src/assistant.py:FieldServiceAssistant.ask()` runs four steps in sequence:
 
 ```
-anthropic>=0.25.0
-langchain>=0.1.0
-langchain-community>=0.0.20
-chromadb>=0.4.0
-sentence-transformers>=2.2.2
-python-dotenv>=1.0.0
-pypdf>=4.0.0
-tiktoken>=0.6.0
-pandas>=2.0.0
-numpy>=1.24.0
+query
+  → retrieve()           # retriever.py: embed query, search all 3 Chroma collections, return top-k ranked results
+  → score_confidence()   # confidence.py: score based on cosine similarity + conflict detection
+  → llm.generate()       # llm.py: called ONLY if confidence is HIGH or PARTIAL
+  → route()              # degradation.py: format final response based on route type
 ```
 
----
+**Three Chroma collections** (`osha`, `manuals`, `job_history`) are kept separate intentionally — merging them would break conflict detection, which relies on identifying that the same query returns high-scoring results from multiple collections with similar scores (`retriever.py:detect_conflicts`).
 
-## What Is Out of Scope for This Prototype
+**Conflict detection heuristic** (`retriever.py:detect_conflicts`): Two heuristics run in sequence:
+1. **Cross-collection** (top 3): results from different collections with scores within 0.15 → PARTIAL. Catches OSHA vs manual disagreements.
+2. **Within-collection version conflict** (top 6): multiple source *files* from the same collection with best-scores within 0.15 → PARTIAL. Added in Phase 2 to catch Carrier 48LC 2017 vs 2023 conflicts. Guard: only fires if the top source score ≥ 0.50 (prevents noise-level matches from triggering false conflicts).
 
-- No frontend or web UI (CLI only)
-- No user authentication or session management
-- No real-time document updates
-- No fine-tuning
-- No multi-agent orchestration (single pipeline only)
-- No production deployment
+**LOW path skips the LLM entirely** (`assistant.py:82`). The escalation message is built programmatically in `degradation.py`. Do not change this — calling the LLM on LOW-confidence context is exactly the hallucination scenario the system is designed to prevent.
 
-These are all valid next steps but are explicitly out of scope for the April 8 submission.
+**LLM provider is swappable** via `LLM_PROVIDER` env var (`anthropic` / `openai` / `gemini`). Currently configured for Gemini. Working model: `gemini-2.5-flash` (gemini-1.5-pro and gemini-2.0-flash are deprecated and return 404).
 
----
-
-## Team
-
-| Name | NetID | Role |
-|------|-------|------|
-| Nishchay Vishwanath | nv268 | RAG pipeline, graceful degradation, demo |
-| Dhruvil Matalia | dm973 | Data collection, document ingestion |
-| Harshita Sahni | hs2288 | Evaluation framework, ground truth annotation |
+**Chroma similarity scores**: Chroma returns L2 distance for unit-normalized sentence-transformer vectors. Correct conversion formula is `1.0 - (L2_distance² / 2)` — this gives true cosine similarity. Do NOT use `1.0 - score` (that formula was wrong and caused HIGH-confidence matches to score ~0.36 instead of ~0.80).
 
 ---
 
-## References
+## Current Data State (Phase 2 Complete)
 
-1. Lewis, P., et al. "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." NeurIPS 2020. https://arxiv.org/abs/2005.11401
-2. Gao, Y., et al. "Retrieval-Augmented Generation for Large Language Models: A Survey." arXiv 2023. https://arxiv.org/abs/2312.10997
-3. OSHA Field Operations Manual. U.S. Department of Labor, 2024. https://www.osha.gov/enforcement/directives/cpl-02-00-164
-4. Anthropic. Claude Model Card. 2024. https://www.anthropic.com/claude
-5. Karpukhin, V., et al. "Dense Passage Retrieval for Open-Domain Question Answering." EMNLP 2020. https://arxiv.org/abs/2004.04906
+| Collection | Files | Chunks |
+|---|---|---|
+| `osha` | 29 CFR 1910.147 (Lockout/Tagout), 29 CFR 1910.303 (Electrical Safety) | 566 |
+| `manuals` | Carrier 48LC 2017, Carrier 48LC 2023, Lennox SL280, Trane XR15 | 2,744 |
+| `job_history` | synthetic_jobs.json (50 records) | 183 |
 
+Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py` after adding documents.
 
+> ⚠️ **Duplicate chunks:** `src/ingest.py` was run twice without clearing the collections. Chunk counts are 2× the expected values (osha: 283→566, manuals: 1,372→2,744). Retrieval still functions correctly but may return duplicate chunks. Fix before final submission: drop and re-ingest with `chroma_db/` deleted first.
 
-# Future domain extensions (post-April 8)
-# - Drone inspection: replace osha/manuals/job_history collections with
-#   inspection_reports/flight_logs/site_anomalies
-# - Power grid construction: replace with safety_procedures/equipment_specs/incident_logs
-# - No code changes required in confidence.py, degradation.py, or assistant.py
+**LangChain imports updated:** `src/ingest.py` and `src/retriever.py` now use `langchain_chroma` and `langchain_huggingface` (replaces deprecated `langchain_community` classes). Both packages added to `requirements.txt`.
+
+**Demo queries (updated in Phase 1 fix):**
+- Demo 1 (HIGH): "What are the steps for the lockout tagout energy control procedure?" — score 0.93
+- Demo 2 (PARTIAL): "What is the recommended refrigerant charge pressure for a Carrier rooftop unit?" — score 0.52
+- Demo 3 (LOW): "What are the repair procedures for a Daikin VRV system model DX300?" — score 0.31 ✓ now correctly routes LOW
+
+---
+
+## Known Issues
+
+1. ~~**`detect_conflicts` only fires across collection names**~~ — **FIXED in Phase 2.** Within-collection version conflict detection added to `retriever.py:detect_conflicts`. Carrier 2017 vs 2023 conflicts now correctly surface as PARTIAL.
+
+2. **Semantic search cannot distinguish model numbers** — queries about near-miss equipment (Trane XR13, Carrier 50XC, Lennox XC25) score high against in-corpus counterparts (XR15, 48LC, SL280) and route PARTIAL instead of LOW. This is an architectural limitation of dense vector retrieval, not a bug. Accepted and documented. Production fix would require hybrid retrieval (BM25 + dense) or metadata filtering on equipment IDs.
+
+3. **Duplicate chunks in Chroma** — ingest was run twice; all collections have 2× the expected chunk counts. See data state note above.
+
+4. **Carrier 48LC airflow query retrieves Lennox content** — "airflow and static pressure settings for Carrier 48LC" returns Lennox SL280 results at top of ranking (score 0.78) because both manuals have similar airflow table content. No conflict fires. Chunking or query-formulation issue for Phase 3.
+
+---
+
+## Eval Sets (Phase 2 Complete)
+
+All three eval files are fully populated. Baseline metrics from `eval/run_eval.py`:
+
+| File | Size | Correct behavior | Baseline |
+|------|------|-----------------|---------|
+| `ground_truth.json` | 50 pairs | HIGH or PARTIAL (not LOW) | **94.0%** (47/50) |
+| `adversarial.json` | 20 queries | LOW (escalate — no hallucination) | **45.0%** (9/20) |
+| `contradictions.json` | 15 scenarios | PARTIAL (conflict surfaced) | **80.0%** (12/15) — after Phase 2 conflict fix |
+| **Overall** | **85 cases** | | **80.0%** (68/85) |
+
+**Adversarial at 45% is an accepted known limitation**, not a target to hit via threshold tuning. The failures are semantically similar near-miss equipment (XR13 ≈ XR15, etc.) — unfixable with cosine similarity alone. Score distributions for ground truth passes and adversarial failures overlap; raising `PARTIAL_THRESHOLD` sacrifices coverage faster than it gains adversarial precision.
+
+Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10–25%.
+
+---
+
+## Key Constraints
+
+- **Three separate Chroma collections — never merge.** Source-aware retrieval and conflict detection depend on this.
+- **Every response must cite a source.** No uncited answers.
+- **Confidence thresholds are product decisions, not engineering ones.** In a safety-critical context, false positives (confident wrong answer) are more dangerous than false negatives (unnecessary escalation). Tune conservatively.
+- **The system prompt in `assistant.py` enforces grounding.** Do not weaken the "answer only from context" and "always cite" instructions.
+
+---
+
+## Future Domain Extensions
+
+The pipeline is domain-agnostic. Swapping the three Chroma collections is sufficient to repurpose it:
+- Drone inspection: `inspection_reports` / `flight_logs` / `site_anomalies`
+- Power grid construction: `safety_procedures` / `equipment_specs` / `incident_logs`
+
+No changes needed in `confidence.py`, `degradation.py`, or `assistant.py`.
