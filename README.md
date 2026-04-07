@@ -42,12 +42,17 @@ python src/ingest.py
 # Generate synthetic job history
 python src/generate_synthetic.py --count 50
 
-# Run the demo
+# Launch browser demo (Streamlit UI)
+streamlit run app.py
+
+# Run CLI demo with three preset queries (HIGH / PARTIAL / LOW)
 python demo/demo.py
 
 # Run evaluation
 python eval/run_eval.py
 ```
+
+The Streamlit UI (`app.py`) provides a browser interface with color-coded confidence badges (green / amber / red), three preset query buttons, inline source citations, and escalation warnings for LOW-confidence routes.
 
 ---
 
@@ -80,6 +85,24 @@ eval/
 
 demo/
   demo.py              # CLI demo for live presentation
+```
+
+---
+
+## Troubleshooting
+
+**Duplicate chunks in Chroma** (if ingest was run more than once):
+```bash
+rm -rf data/chroma_db/
+python src/ingest.py
+```
+Never run `ingest.py` twice without clearing `data/chroma_db/` first — each run appends to existing collections.
+
+**Switching LLM providers** — set `LLM_PROVIDER` in `.env` (`anthropic` / `openai` / `gemini`). Current working model: `gemini-2.5-flash`.
+
+**Tuning confidence thresholds** without code changes:
+```bash
+CONFIDENCE_HIGH_THRESHOLD=0.80 CONFIDENCE_PARTIAL_THRESHOLD=0.55 python demo/demo.py
 ```
 
 ---

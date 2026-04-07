@@ -109,7 +109,6 @@ def ingest_collection(collection_name: str, source_dir: str, embeddings):
         collection_name=collection_name,
         persist_directory=CHROMA_PERSIST_DIR
     )
-    vectorstore.persist()
     print(f"  [OK] Indexed into Chroma collection: {collection_name}")
     return vectorstore
 

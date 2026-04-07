@@ -82,12 +82,16 @@ def detect_conflicts(results: list[dict]) -> bool:
     if len(results) < 2:
         return False
 
-    # --- Heuristic 1: cross-collection (original) ---
-    top3 = results[:3]
-    top3_scores = [r["score"] for r in top3]
-    collections_seen = set(r["collection"] for r in top3)
-    if len(collections_seen) > 1 and (max(top3_scores) - min(top3_scores)) < 0.15:
-        return True
+    # --- Heuristic 1: cross-collection (authoritative sources only) ---
+    # job_history is anecdotal (field notes); it should not conflict with
+    # authoritative specs from osha or manuals collections.
+    AUTHORITATIVE = {"osha", "manuals"}
+    top3_auth = [r for r in results[:3] if r["collection"] in AUTHORITATIVE]
+    if len(top3_auth) >= 2:
+        auth_collections = set(r["collection"] for r in top3_auth)
+        auth_scores = [r["score"] for r in top3_auth]
+        if len(auth_collections) > 1 and (max(auth_scores) - min(auth_scores)) < 0.15:
+            return True
 
     # --- Heuristic 2: within-collection version conflict ---
     # For each collection, find distinct source files in the top-6 window.
