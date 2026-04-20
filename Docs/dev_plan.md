@@ -1,6 +1,6 @@
 # Field Service Intelligence Assistant — Phased Development Plan
 
-**Team TBH-20 | Submission: April 8, 2026**
+**Nishchay Vishwanath | April 2026**
 
 ---
 
@@ -33,7 +33,7 @@ The RAG pipeline skeleton is fully written. No data has been ingested yet.
 
 **Goal:** Get real documents into Chroma so retrieval actually works end-to-end.
 
-**Owner:** Dhruvil (data collection) + Nishchay (ingest verification)
+**Owner:** Nishchay
 
 ### Steps
 
@@ -70,7 +70,7 @@ The RAG pipeline skeleton is fully written. No data has been ingested yet.
 
 **Goal:** Replace stubs with real evaluation data so metrics are meaningful.
 
-**Owner:** Harshita
+**Owner:** Nishchay
 
 ### Steps
 
@@ -156,7 +156,7 @@ The RAG pipeline skeleton is fully written. No data has been ingested yet.
 
 **Goal:** Final metrics, clean repo, presentation-ready artifacts.
 
-**Owner:** All
+**Owner:** Nishchay
 
 ### Steps
 
@@ -183,7 +183,7 @@ The RAG pipeline skeleton is fully written. No data has been ingested yet.
 
 ---
 
-## Key Design Constraints (do not change without team discussion)
+## Key Design Constraints
 
 - Confidence thresholds are **product decisions** — tune conservatively. False positives (wrong confident answer) are more dangerous than false negatives (unnecessary escalation) in a safety-critical field context.
 - Three separate Chroma collections (`osha`, `manuals`, `job_history`) — never merge into one. Source-aware retrieval enables conflict detection.

@@ -159,8 +159,7 @@ def build_deck():
 
     # Slide 1
     slide = new_slide()
-    add_badge(slide, Inches(0.55), Inches(0.38), "Cornell · April 2026", RGBColor(30, 58, 95), ACCENT)
-    add_badge(slide, Inches(1.72), Inches(0.38), "Team TBH-20", PANEL, DIM)
+    add_badge(slide, Inches(0.55), Inches(0.38), "Cornell MEM · April 2026", RGBColor(30, 58, 95), ACCENT)
     add_textbox(slide, Inches(0.7), Inches(1.15), Inches(6.2), Inches(1.1),
                 "Field Service Intelligence\nAssistant", font_size=28, color=TEXT, bold=True)
     add_textbox(slide, Inches(0.72), Inches(2.25), Inches(7.0), Inches(0.5),
@@ -168,17 +167,13 @@ def build_deck():
                 font_size=16, color=MUTED)
     add_panel(slide, Inches(0.7), Inches(3.0), Inches(6.1), Inches(1.1))
     add_textbox(slide, Inches(0.88), Inches(3.25), Inches(5.7), Inches(0.55),
-                '"Field technicians make safety-critical decisions with the wrong information.\nWe fix the retrieval and trust problem."', font_size=16, color=TEXT)
+                '"Field technicians make safety-critical decisions with the wrong information.\nThis system fixes the retrieval and trust problem."', font_size=16, color=TEXT)
     add_placeholder(slide, Inches(7.35), Inches(1.2), Inches(5.15), Inches(3.65),
                     "Hero visual",
                     "Suggested visual: technician in the field using a tablet, with manuals and safety documents fading into a single answer view.")
-    add_panel(slide, Inches(0.7), Inches(5.45), Inches(11.8), Inches(1.0), "Team")
     add_textbox(slide, Inches(0.9), Inches(5.78), Inches(11.2), Inches(0.42),
-                "Nishchay Vishwanath (nv268)  |  Dhruvil Matalia (dm973)  |  Harshita Sahni (hs2288)",
+                "Nishchay Vishwanath",
                 font_size=14, color=TEXT, bold=True)
-    add_textbox(slide, Inches(0.9), Inches(6.05), Inches(11.2), Inches(0.25),
-                "RAG pipeline, degradation, demo  |  Data collection, ingestion  |  Evaluation, ground truth",
-                font_size=11, color=DIM)
 
     # Slide 2
     slide = new_slide()
@@ -206,7 +201,7 @@ def build_deck():
     add_placeholder(slide, Inches(6.85), Inches(3.2), Inches(5.95), Inches(3.2),
                     "Before / after process graphic",
                     "Suggested visual: split image showing dispatcher callback workflow on one side and instant assistant response on the other.")
-    add_footer(slide, "Project brief assumptions; field workflow framing from team deck content.", 2)
+    add_footer(slide, "Project brief assumptions; field workflow framing from project documentation.", 2)
 
     # Slide 3
     slide = new_slide()
@@ -247,7 +242,7 @@ def build_deck():
     add_placeholder(slide, Inches(7.95), Inches(1.0), Inches(4.85), Inches(4.9),
                     "Metrics chart",
                     "Suggested visual: bar or scorecard for coverage, escalation, hallucination rate, and source precision.")
-    add_footer(slide, "Team evaluation plan; RAG reliability and calibrated confidence framing.", 4)
+    add_footer(slide, "Evaluation plan; RAG reliability and calibrated confidence framing.", 4)
 
     # Slide 5
     slide = new_slide()
@@ -271,7 +266,7 @@ def build_deck():
     add_placeholder(slide, Inches(8.7), Inches(4.2), Inches(4.1), Inches(2.5),
                     "Feedback loop visual",
                     "Suggested visual: system answer -> dispatcher override -> labeled pair -> next model version.")
-    add_footer(slide, "Human factors framing from team deck; DPO roadmap described in current slides.", 5)
+    add_footer(slide, "Human factors framing from project slides; DPO roadmap described in current slides.", 5)
 
     # Slide 6
     slide = new_slide()
@@ -359,7 +354,7 @@ def build_deck():
     add_placeholder(slide, Inches(6.35), Inches(4.55), Inches(6.45), Inches(2.05),
                     "Cost chart",
                     "Suggested visual: stacked bar for API, hosting, and infrastructure cost categories.")
-    add_footer(slide, "Cost assumptions from team deck; Claude pricing should be verified against current Anthropic pricing page before final delivery.", 9)
+    add_footer(slide, "Cost model; Claude pricing should be verified against current Anthropic pricing page before final delivery.", 9)
 
     # Slide 10
     slide = new_slide()
@@ -376,7 +371,7 @@ def build_deck():
     add_placeholder(slide, Inches(8.0), Inches(1.0), Inches(4.8), Inches(5.6),
                     "Break-even chart",
                     "Suggested visual: two cost lines crossing over as usage grows, with the break-even point labeled.")
-    add_footer(slide, "Team cost model plus self-hosted vs API tradeoff framing from the current deck.", 10)
+    add_footer(slide, "Cost model plus self-hosted vs API tradeoff framing from the current deck.", 10)
 
     # Slide 11
     slide = new_slide()
@@ -401,7 +396,7 @@ def build_deck():
     add_textbox(slide, Inches(7.0), Inches(4.75), Inches(5.6), Inches(1.05),
                 "The product is valuable because it answers quickly when it should, and escalates clearly when it should not pretend to know.",
                 font_size=14, color=TEXT)
-    add_footer(slide, "Business model framing from the current deck and capstone positioning.", 11)
+    add_footer(slide, "Business model framing from the current deck.", 11)
 
     # Slide 12
     slide = new_slide()

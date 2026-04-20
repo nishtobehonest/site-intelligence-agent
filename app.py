@@ -61,7 +61,7 @@ def load_assistant():
 # ---------------------------------------------------------------------------
 
 st.title("🔧 Field Service Intelligence Assistant")
-st.caption("Team TBH-20  |  Cornell MEM Capstone  |  April 2026")
+st.caption("Nishchay Vishwanath  |  Cornell MEM  |  April 2026")
 st.markdown("---")
 
 # ---------------------------------------------------------------------------

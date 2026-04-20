@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, Team TBH-20, submission April 8 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
+A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, submission April 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
 **Prototype only** — CLI interface, no auth, no frontend, no production deployment.
 

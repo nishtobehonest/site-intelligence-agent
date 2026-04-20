@@ -1,8 +1,6 @@
 # Field Service Intelligence Assistant
 
-**Team TBH-20 | Cornell AI for Building Solutions Capstone | April 2026**
-
-Nishchay Vishwanath (nv268) · Dhruvil Matalia (dm973) · Harshita Sahni (hs2288)
+**Nishchay Vishwanath | Cornell MEM | April 2026**
 
 ---
 

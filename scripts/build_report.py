@@ -110,7 +110,7 @@ run2.font.color.rgb = RGBColor(0x16, 0x48, 0x7B)
 
 meta = doc.add_paragraph()
 meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-meta.add_run("Team TBH-20  |  Cornell MEM AI for Building Solutions  |  April 2026").font.size = Pt(10)
+meta.add_run("Nishchay Vishwanath  |  Cornell MEM  |  April 2026").font.size = Pt(10)
 
 add_hr(doc)
 
@@ -170,7 +170,7 @@ add_table(doc,
     col_widths=[3.0, 3.3]
 )
 
-h2(doc, "3.2  What We Did")
+h2(doc, "3.2  What I Did")
 bullet(doc, "Downloaded 2 real OSHA PDFs: 29 CFR 1910.147 (Lockout/Tagout procedures) and 29 CFR 1910.303 (Electrical Safety requirements).", "OSHA documents: ")
 bullet(doc, (
     "Downloaded 4 real equipment manuals: two versions of the Carrier 48LC rooftop unit (2017 and 2023 editions), "
@@ -337,22 +337,22 @@ add_table(doc,
         ],
         [
             "Expand ground_truth.json to 50 Q&A pairs",
-            "Harshita",
+            "Nishchay",
             "Required to measure coverage rate and hallucination rate"
         ],
         [
             "Expand adversarial.json to 20 out-of-corpus queries",
-            "Harshita",
+            "Nishchay",
             "Required to measure escalation rate"
         ],
         [
             "Expand contradictions.json to 15 conflict scenarios",
-            "Harshita",
+            "Nishchay",
             "Required to measure conflict detection rate"
         ],
         [
             "Run eval/run_eval.py and record baseline metrics",
-            "All",
+            "Nishchay",
             "Establishes whether targets are met before Phase 3 threshold tuning"
         ],
     ],
@@ -381,9 +381,9 @@ add_hr(doc)
 # ── Footer ──
 footer_p = doc.add_paragraph()
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-footer_run = footer_p.add_run("Team TBH-20  |  Cornell MEM AI for Building Solutions Capstone  |  April 2026")
+footer_run = footer_p.add_run("Nishchay Vishwanath  |  Cornell MEM  |  April 2026")
 footer_run.font.size = Pt(9)
 footer_run.font.color.rgb = RGBColor(0x99, 0x99, 0x99)
 
-doc.save("Docs/Phase1_Case_Analysis_TBH20.docx")
-print("Saved: Docs/Phase1_Case_Analysis_TBH20.docx")
+doc.save("Docs/Phase1_Case_Analysis.docx")
+print("Saved: Docs/Phase1_Case_Analysis.docx")
