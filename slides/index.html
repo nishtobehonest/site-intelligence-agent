@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Field Service Intelligence Assistant — TBH-20</title>
+  <title>Field Service Intelligence Assistant</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" />
@@ -176,8 +176,7 @@
 ═══════════════════════════════════════ -->
 <section>
   <div style="display:flex; gap:10px; margin-bottom:18px;">
-    <span class="badge badge-blue">Cornell · April 2026</span>
-    <span class="badge badge-muted">Team TBH-20</span>
+    <span class="badge badge-blue">Cornell MEM · April 2026</span>
   </div>
 
   <h1>Field Service Intelligence<br>Assistant</h1>
@@ -187,7 +186,7 @@
 
   <div class="title-hook">
     "Field technicians make safety-critical decisions with the wrong information.<br>
-    We fix the <strong>retrieval and trust problem</strong> — not just the data problem."
+    This system fixes the <strong>retrieval and trust problem</strong> — not just the data problem."
   </div>
 
   <div class="flex-grow"></div>
@@ -195,15 +194,6 @@
   <div class="team-row">
     <div class="team-member">
       <div class="name">Nishchay Vishwanath</div>
-      <div class="netid">nv268 · RAG pipeline, degradation, demo</div>
-    </div>
-    <div class="team-member">
-      <div class="name">Dhruvil Matalia</div>
-      <div class="netid">dm973 · Data collection, ingestion</div>
-    </div>
-    <div class="team-member">
-      <div class="name">Harshita Sahni</div>
-      <div class="netid">hs2288 · Evaluation, ground truth</div>
     </div>
   </div>
 </section>
@@ -300,7 +290,7 @@
 <section>
   <h2>Evaluation — "Moving Fast Without Breaking Trust"</h2>
 
-  <blockquote>We don't use a pilot group — we can't scale that. Instead, we stress-test every failure mode before any human touches it.</blockquote>
+  <blockquote>No pilot group — can't scale that. Instead, I stress-test every failure mode before any human touches it.</blockquote>
 
   <table style="margin-bottom:12px;">
     <tr>
@@ -367,7 +357,7 @@
       <p>Every dispatcher override is logged: query, system answer, override reason code.</p>
       <p class="mt-sm">These logs become <strong>preference pairs for DPO fine-tuning</strong> on Llama 3 70B in v2.</p>
       <div class="callout success mt-sm">
-        <p>We're building the feedback loop from day one — not retrofitting it.</p>
+        <p>The feedback loop is built in from day one — not retrofitted.</p>
       </div>
       <p style="color:var(--dim); font-size:0.65em; margin-top:6px;">The eval framework today is the training data pipeline for the next model version.</p>
     </div>
