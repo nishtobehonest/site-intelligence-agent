@@ -8,6 +8,7 @@ import os
 import streamlit as st
 from src.assistant import FieldServiceAssistant
 from pages.shared import confidence_badge_html, render_escalation_warning, render_source_expander, render_why_it_matters
+from pages._why_it_matters_content import render as render_why_it_matters_visual
 
 st.set_page_config(page_title="HVAC Agent", page_icon="🔧", layout="wide")
 
@@ -75,7 +76,41 @@ def build_hvac_trace(result: dict) -> dict:
 
 st.title("🔧 HVAC Field Service Agent")
 st.caption("Phase 1 · RAG + confidence scoring + graceful degradation")
-st.markdown("---")
+
+st.markdown(
+    """
+    <style>
+    /* Tab bar — increase height and font size */
+    div[data-testid="stTabs"] button[role="tab"] {
+        font-size: 1.05rem;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        letter-spacing: 0.02em;
+        color: #8B8FA8;
+        border-bottom: 3px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+    }
+    /* Active tab */
+    div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+        color: #00B4D8;
+        border-bottom: 3px solid #00B4D8;
+        background: rgba(0, 180, 216, 0.06);
+        border-radius: 6px 6px 0 0;
+    }
+    /* Hover on inactive tab */
+    div[data-testid="stTabs"] button[role="tab"]:hover {
+        color: #E8EAF0;
+        border-bottom: 3px solid #444;
+    }
+    /* Hide the default thin underline Streamlit draws */
+    div[data-testid="stTabs"] div[role="tablist"] {
+        border-bottom: 1px solid #2a2d35;
+        gap: 0.25rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ---------------------------------------------------------------------------
 # Sidebar — threshold display
@@ -92,66 +127,72 @@ with st.sidebar:
     render_why_it_matters("hvac")
 
 # ---------------------------------------------------------------------------
-# Preset buttons
+# Tabs
 # ---------------------------------------------------------------------------
 
-st.markdown("**Quick demos — one per routing path:**")
-btn_cols = st.columns(3)
-for i, preset in enumerate(PRESETS):
-    if btn_cols[i].button(preset["label"], use_container_width=True):
-        st.session_state["hvac_query"] = preset["query"]
+tab_agent, tab_why = st.tabs(["🔧 Ask a Question", "💡 Why It Matters"])
 
-st.markdown("")
+with tab_agent:
+    st.markdown("")
 
-# ---------------------------------------------------------------------------
-# Layout: input left, output right
-# ---------------------------------------------------------------------------
+    # Preset buttons
+    st.markdown("**Quick demos — one per routing path:**")
+    btn_cols = st.columns(3)
+    for i, preset in enumerate(PRESETS):
+        if btn_cols[i].button(preset["label"], use_container_width=True):
+            st.session_state["hvac_query"] = preset["query"]
 
-col_in, col_out = st.columns([2, 3])
+    st.markdown("")
 
-with col_in:
-    query = st.text_area(
-        "Technician question",
-        value=st.session_state.get("hvac_query", ""),
-        height=120,
-        placeholder="Ask about equipment procedures, OSHA requirements, or job history...",
-        key="hvac_input",
-    )
-    submit = st.button("Ask", type="primary", use_container_width=True)
+    # Layout: input left, output right
+    col_in, col_out = st.columns([2, 3])
 
-with col_out:
-    if submit and query.strip():
-        assistant = load_assistant()
-
-        with st.spinner("Retrieving documents and generating response..."):
-            result = assistant.ask(query)
-
-        # Badge
-        st.markdown(
-            confidence_badge_html(result["confidence_level"], result["top_score"]),
-            unsafe_allow_html=True,
+    with col_in:
+        query = st.text_area(
+            "Technician question",
+            value=st.session_state.get("hvac_query", ""),
+            height=120,
+            placeholder="Ask about equipment procedures, OSHA requirements, or job history...",
+            key="hvac_input",
         )
-        st.markdown("")
+        submit = st.button("Ask", type="primary", use_container_width=True)
 
-        # Pipeline trace
-        trace = build_hvac_trace(result)
-        with st.status("Pipeline trace", expanded=True):
-            st.markdown(f"**1. Retrieve:** {trace['retrieve']}")
-            st.markdown(f"**2. Score:** {trace['score']}")
-            st.markdown(f"**3. LLM:** {trace['llm']}")
-            st.markdown(f"**4. Route:** `{trace['route']}`")
+    with col_out:
+        if submit and query.strip():
+            assistant = load_assistant()
 
-        st.markdown("---")
+            with st.spinner("Retrieving documents and generating response..."):
+                result = assistant.ask(query)
 
-        # Answer
-        response_text = result["response"]
-        if "\n\nSources:\n" in response_text:
-            answer_text, _ = response_text.split("\n\nSources:\n", 1)
-        else:
-            answer_text = response_text
-        st.markdown(answer_text)
+            # Badge
+            st.markdown(
+                confidence_badge_html(result["confidence_level"], result["top_score"]),
+                unsafe_allow_html=True,
+            )
+            st.markdown("")
 
-        render_source_expander(result["sources"], result["route_type"])
-        render_escalation_warning(result["route_type"])
-    elif not submit:
-        st.markdown("*Results will appear here after you submit a query.*")
+            # Pipeline trace
+            trace = build_hvac_trace(result)
+            with st.status("Pipeline trace", expanded=True):
+                st.markdown(f"**1. Retrieve:** {trace['retrieve']}")
+                st.markdown(f"**2. Score:** {trace['score']}")
+                st.markdown(f"**3. LLM:** {trace['llm']}")
+                st.markdown(f"**4. Route:** `{trace['route']}`")
+
+            st.markdown("---")
+
+            # Answer
+            response_text = result["response"]
+            if "\n\nSources:\n" in response_text:
+                answer_text, _ = response_text.split("\n\nSources:\n", 1)
+            else:
+                answer_text = response_text
+            st.markdown(answer_text)
+
+            render_source_expander(result["sources"], result["route_type"])
+            render_escalation_warning(result["route_type"])
+        elif not submit:
+            st.markdown("*Results will appear here after you submit a query.*")
+
+with tab_why:
+    render_why_it_matters_visual()
