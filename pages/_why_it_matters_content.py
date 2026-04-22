@@ -8,17 +8,21 @@ Called from 1_HVAC_Agent.py as a tab.
 
 import streamlit as st
 
-BG        = "#0F1117"
-SECONDARY = "#1A1D24"
-ACCENT    = "#00B4D8"
-TEXT      = "#E8EAF0"
-MUTED     = "#8B8FA8"
-GREEN     = "#28a745"
-GREEN_BG  = "#0d2b18"
-AMBER     = "#e6a817"
-AMBER_BG  = "#2b2208"
-RED       = "#dc3545"
-RED_BG    = "#2b0d10"
+BG        = "#FFFFFF"
+SECONDARY = "#F0F2F6"
+ACCENT    = "#0086A8"
+TEXT      = "#1A1A2E"
+MUTED     = "#6B7280"
+GREEN     = "#15803d"
+GREEN_BG  = "#f0fdf4"
+GREEN_BORDER = "#86efac"
+AMBER     = "#b45309"
+AMBER_BG  = "#fffbeb"
+AMBER_BORDER = "#d97706"
+RED       = "#b91c1c"
+RED_BG    = "#fef2f2"
+RED_BORDER = "#fca5a5"
+BORDER    = "#E2E8F0"
 
 
 def render() -> None:
@@ -62,25 +66,25 @@ def render() -> None:
               </p>
               <div style="display:flex;flex-direction:column;gap:0.65rem;">
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(220,53,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(185,28,28,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👷</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Technician has a question on-site</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(220,53,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(185,28,28,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📄</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Searches paper manuals, Google, or calls supervisor</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(220,53,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(185,28,28,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">❓</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Gets an uncertain or uncited answer</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(220,53,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(185,28,28,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚠️</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Proceeds anyway — OSHA risk, rework, injury</span>
                 </div>
@@ -105,25 +109,25 @@ def render() -> None:
               </p>
               <div style="display:flex;flex-direction:column;gap:0.65rem;">
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(40,167,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(21,128,61,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👷</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Technician asks a natural-language question</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(40,167,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(21,128,61,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🔍</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Agent retrieves from OSHA docs, manuals, job history</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(40,167,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(21,128,61,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📊</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Scores confidence — HIGH, PARTIAL, or LOW</span>
                 </div>
                 <div style="padding-left:1.25rem;color:{MUTED};font-size:0.8rem;">↓</div>
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                  <span style="background:rgba(40,167,69,0.2);border-radius:50%;width:2rem;height:2rem;
+                  <span style="background:rgba(21,128,61,0.1);border-radius:50%;width:2rem;height:2rem;
                                display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✅</span>
                   <span style="color:{TEXT};font-size:0.92rem;">Cited answer, flagged conflict, or clean escalation</span>
                 </div>
@@ -328,15 +332,15 @@ def render() -> None:
 
     top_row = (
         f'<div style="display:flex;align-items:stretch;gap:0;margin-bottom:1.5rem;min-width:700px;">'
-        + _step(1, "Query",    "Natural-language question from technician",                          "#1c2a3a", "#2a4a6b", "#74b9e8")
+        + _step(1, "Query",    "Natural-language question from technician",                          "#eff6ff", "#bfdbfe", "#1d4ed8")
         + arrow
-        + _step(2, "Classify", "Intent + entities &rarr; which collections to search",               "#261a3a", "#4a2a6b", "#b47be8")
+        + _step(2, "Classify", "Intent + entities &rarr; which collections to search",               "#f5f3ff", "#c4b5fd", "#7c3aed")
         + arrow
-        + _step(3, "Retrieve", "Embed query &rarr; search Chroma collections &rarr; rank by cosine", "#0d2530", "#0c5a72", "#00B4D8")
+        + _step(3, "Retrieve", "Embed query &rarr; search Chroma collections &rarr; rank by cosine", "#ecfeff", "#a5f3fc", "#0e7490")
         + arrow
-        + _step(4, "Score",    "Similarity + conflict detection &rarr; HIGH / PARTIAL / LOW",         AMBER_BG,  "#6b4800", AMBER)
+        + _step(4, "Score",    "Similarity + conflict detection &rarr; HIGH / PARTIAL / LOW",         AMBER_BG,  AMBER_BORDER, AMBER)
         + arrow
-        + _step(5, "Route",    "Format final response based on confidence path",                      "#1a1a2e", "#3a3a6b", "#9090e8")
+        + _step(5, "Route",    "Format final response based on confidence path",                      "#eef2ff", "#a5b4fc", "#4338ca")
         + "</div>"
     )
 
@@ -359,7 +363,7 @@ def render() -> None:
         # PARTIAL
         f'<div style="flex:1;background:{AMBER_BG};border:1px solid {AMBER};border-radius:8px;padding:1rem;">'
         f'<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">'
-        f'<span style="background:{AMBER};color:#1a1a1a;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:3px;">PARTIAL</span>'
+        f'<span style="background:{AMBER};color:white;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:3px;">PARTIAL</span>'
         f'<span style="color:{MUTED};font-size:0.8rem;">score 0.50&ndash;0.75 or conflict</span></div>'
         f'<p style="color:{TEXT};font-size:0.82rem;margin:0;line-height:1.45;">LLM called &rarr; answer + &#9888; conflict flag + both sources shown</p>'
         f'<p style="color:{AMBER};font-size:0.75rem;margin:0.4rem 0 0 0;font-style:italic;">"Carrier 2017: 350&ndash;410 PSI; 2023 manual: 395&ndash;450 PSI. Verify before acting."</p>'

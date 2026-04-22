@@ -80,31 +80,27 @@ st.caption("Phase 1 · RAG + confidence scoring + graceful degradation")
 st.markdown(
     """
     <style>
-    /* Tab bar — increase height and font size */
     div[data-testid="stTabs"] button[role="tab"] {
         font-size: 1.05rem;
         font-weight: 600;
         padding: 0.75rem 1.5rem;
         letter-spacing: 0.02em;
-        color: #8B8FA8;
+        color: #6B7280;
         border-bottom: 3px solid transparent;
         transition: color 0.15s, border-color 0.15s;
     }
-    /* Active tab */
     div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
-        color: #00B4D8;
-        border-bottom: 3px solid #00B4D8;
-        background: rgba(0, 180, 216, 0.06);
+        color: #0086A8;
+        border-bottom: 3px solid #0086A8;
+        background: rgba(0, 134, 168, 0.06);
         border-radius: 6px 6px 0 0;
     }
-    /* Hover on inactive tab */
     div[data-testid="stTabs"] button[role="tab"]:hover {
-        color: #E8EAF0;
-        border-bottom: 3px solid #444;
+        color: #1A1A2E;
+        border-bottom: 3px solid #CBD5E1;
     }
-    /* Hide the default thin underline Streamlit draws */
     div[data-testid="stTabs"] div[role="tablist"] {
-        border-bottom: 1px solid #2a2d35;
+        border-bottom: 1px solid #E2E8F0;
         gap: 0.25rem;
     }
     </style>
