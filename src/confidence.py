@@ -24,7 +24,11 @@ HIGH_THRESHOLD = float(os.getenv("CONFIDENCE_HIGH_THRESHOLD", 0.75))
 PARTIAL_THRESHOLD = float(os.getenv("CONFIDENCE_PARTIAL_THRESHOLD", 0.50))
 
 
-def score_confidence(results: list[dict]) -> dict:
+def score_confidence(
+    results: list[dict],
+    high_threshold: float = None,
+    partial_threshold: float = None,
+) -> dict:
     """
     Given retrieved results, return a confidence assessment.
 
@@ -36,6 +40,9 @@ def score_confidence(results: list[dict]) -> dict:
             "conflict_detected": bool
         }
     """
+    high_t = high_threshold if high_threshold is not None else HIGH_THRESHOLD
+    partial_t = partial_threshold if partial_threshold is not None else PARTIAL_THRESHOLD
+
     if not results:
         return {
             "level": "LOW",
@@ -48,10 +55,10 @@ def score_confidence(results: list[dict]) -> dict:
     conflict = detect_conflicts(results)
 
     # LOW: nothing useful found
-    if top_score < PARTIAL_THRESHOLD:
+    if top_score < partial_t:
         return {
             "level": "LOW",
-            "reason": f"Best match similarity ({top_score:.2f}) is below the minimum threshold ({PARTIAL_THRESHOLD}). Insufficient context to answer reliably.",
+            "reason": f"Best match similarity ({top_score:.2f}) is below the minimum threshold ({partial_t}). Insufficient context to answer reliably.",
             "top_score": top_score,
             "conflict_detected": conflict
         }
@@ -67,20 +74,20 @@ def score_confidence(results: list[dict]) -> dict:
         }
 
     # PARTIAL: score in the middle range
-    if top_score < HIGH_THRESHOLD:
+    if top_score < high_t:
         return {
             "level": "PARTIAL",
-            "reason": f"Match similarity ({top_score:.2f}) is below high-confidence threshold ({HIGH_THRESHOLD}). Answer may be incomplete.",
+            "reason": f"Match similarity ({top_score:.2f}) is below high-confidence threshold ({high_t}). Answer may be incomplete.",
             "top_score": top_score,
             "conflict_detected": False
         }
 
     # HIGH: strong match, no conflict
-    strong_results = [r for r in results if r["score"] >= 0.60]
+    strong_results = [r for r in results if r["score"] >= partial_t]
     if len(strong_results) >= 2:
         return {
             "level": "HIGH",
-            "reason": f"Strong match found (similarity: {top_score:.2f}). {len(strong_results)} supporting results above 0.60 threshold.",
+            "reason": f"Strong match found (similarity: {top_score:.2f}). {len(strong_results)} supporting results above {partial_t} threshold.",
             "top_score": top_score,
             "conflict_detected": False
         }

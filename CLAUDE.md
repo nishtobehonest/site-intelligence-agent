@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, submission April 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
-**Prototype only** — CLI interface, no auth, no frontend, no production deployment.
+**Phase 1 (HVAC) is complete and submitted.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, and drone data layer are written; pipeline wiring and eval are next.
 
 ---
 
@@ -19,14 +19,23 @@ A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, submissi
 pip install -r requirements.txt
 cp .env.example .env   # then add ANTHROPIC_API_KEY
 
-# Ingest documents into Chroma (run after adding files to data/raw/)
+# Ingest HVAC collections (Phase 1)
 python src/ingest.py
+
+# Ingest drone inspection collections (Phase 2)
+python src/ingest.py --domain drone
+
+# Ingest both domains
+python src/ingest.py --domain all
 
 # Run interactive demo or three preset demo queries
 python demo/demo.py
 
-# Generate synthetic job history (50 records via Claude API)
+# Generate synthetic HVAC job history (50 records via Claude API)
 python src/generate_synthetic.py
+
+# Generate synthetic drone inspection data
+python src/generate_drone_data.py
 
 # Run full evaluation suite → prints metrics table + saves eval_results.csv
 python eval/run_eval.py
@@ -49,19 +58,28 @@ The pipeline in `src/assistant.py:FieldServiceAssistant.ask()` runs four steps i
 
 ```
 query
-  → retrieve()           # retriever.py: embed query, search all 3 Chroma collections, return top-k ranked results
+  → classify()           # classifier.py: query type + entity extraction → which collections + retrieval strategy
+  → retrieve()           # retriever.py: embed query, search Chroma collections, apply spatial filter, return top-k
   → score_confidence()   # confidence.py: score based on cosine similarity + conflict detection
   → llm.generate()       # llm.py: called ONLY if confidence is HIGH or PARTIAL
   → route()              # degradation.py: format final response based on route type
 ```
 
-**Three Chroma collections** (`osha`, `manuals`, `job_history`) are kept separate intentionally — merging them would break conflict detection, which relies on identifying that the same query returns high-scoring results from multiple collections with similar scores (`retriever.py:detect_conflicts`).
+The classifier step (Phase 2 addition) is domain-aware and runs two paths: rule-based keyword matching (~70% of queries, ~5ms, no LLM call) or LLM structured output for ambiguous queries (`classifier.py`).
+
+**Six Chroma collections across two domains** — never merge within or across domains:
+- HVAC (Phase 1): `osha`, `manuals`, `job_history`
+- Drone (Phase 2): `inspection_records`, `historical_baselines`, `compliance_docs`
+
+**Domain selection** is determined at runtime by the classifier and/or explicit `domain=` parameter in `load_collections()`. `retriever.py` defines `HVAC_COLLECTIONS` and `DRONE_COLLECTIONS` constants.
+
+Collections are kept separate intentionally — merging them would break conflict detection, which relies on identifying that the same query returns high-scoring results from multiple collections with similar scores (`retriever.py:detect_conflicts`).
 
 **Conflict detection heuristic** (`retriever.py:detect_conflicts`): Two heuristics run in sequence:
 1. **Cross-collection** (top 3): results from different collections with scores within 0.15 → PARTIAL. Catches OSHA vs manual disagreements.
 2. **Within-collection version conflict** (top 6): multiple source *files* from the same collection with best-scores within 0.15 → PARTIAL. Added in Phase 2 to catch Carrier 48LC 2017 vs 2023 conflicts. Guard: only fires if the top source score ≥ 0.50 (prevents noise-level matches from triggering false conflicts).
 
-**LOW path skips the LLM entirely** (`assistant.py:82`). The escalation message is built programmatically in `degradation.py`. Do not change this — calling the LLM on LOW-confidence context is exactly the hallucination scenario the system is designed to prevent.
+**LOW path skips the LLM entirely** (`assistant.py`). The escalation message is built programmatically in `degradation.py`. Do not change this — calling the LLM on LOW-confidence context is exactly the hallucination scenario the system is designed to prevent.
 
 **LLM provider is swappable** via `LLM_PROVIDER` env var (`anthropic` / `openai` / `gemini`). Currently configured for Gemini. Working model: `gemini-2.5-flash` (gemini-1.5-pro and gemini-2.0-flash are deprecated and return 404).
 
@@ -69,51 +87,70 @@ query
 
 ---
 
-## Current Data State (Phase 2 Complete)
+## Current Data State
+
+Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py --domain all` after adding documents.
+
+**HVAC domain (Phase 1 — complete):**
 
 | Collection | Files | Chunks |
 |---|---|---|
-| `osha` | 29 CFR 1910.147 (Lockout/Tagout), 29 CFR 1910.303 (Electrical Safety) | 566 |
-| `manuals` | Carrier 48LC 2017, Carrier 48LC 2023, Lennox SL280, Trane XR15 | 2,744 |
-| `job_history` | synthetic_jobs.json (50 records) | 183 |
+| `osha` | 29 CFR 1910.147 (Lockout/Tagout), 29 CFR 1910.303 (Electrical Safety) | 283 |
+| `manuals` | Carrier 48LC 2017, Carrier 48LC 2023, Lennox SL280, Trane XR15 | 1,372 |
+| `job_history` | synthetic_jobs.json (50 records) | 181 |
 
-Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py` after adding documents.
+> ✅ **Duplicate chunks resolved.** Earlier runs had 2× counts (ingest run twice). Chroma DB was dropped and re-ingested cleanly.
 
-> ⚠️ **Duplicate chunks:** `src/ingest.py` was run twice without clearing the collections. Chunk counts are 2× the expected values (osha: 283→566, manuals: 1,372→2,744). Retrieval still functions correctly but may return duplicate chunks. Fix before final submission: drop and re-ingest with `chroma_db/` deleted first.
+**Drone domain (Phase 2 — in progress):**
 
-**LangChain imports updated:** `src/ingest.py` and `src/retriever.py` now use `langchain_chroma` and `langchain_huggingface` (replaces deprecated `langchain_community` classes). Both packages added to `requirements.txt`.
+| Collection | Files | Chunks |
+|---|---|---|
+| `inspection_records` | inspection_records.json | 202 |
+| `historical_baselines` | historical_baselines.json | 160 |
+| `compliance_docs` | OSHA 1926.452 (scaffold safety) | 158 |
 
-**Demo queries (updated in Phase 1 fix):**
+**LangChain imports:** `src/ingest.py` and `src/retriever.py` use `langchain_chroma` and `langchain_huggingface` (not `langchain_community`). Both packages are in `requirements.txt`.
+
+**HVAC demo queries:**
 - Demo 1 (HIGH): "What are the steps for the lockout tagout energy control procedure?" — score 0.93
 - Demo 2 (PARTIAL): "What is the recommended refrigerant charge pressure for a Carrier rooftop unit?" — score 0.52
-- Demo 3 (LOW): "What are the repair procedures for a Daikin VRV system model DX300?" — score 0.31 ✓ now correctly routes LOW
+- Demo 3 (LOW): "What are the repair procedures for a Daikin VRV system model DX300?" — score 0.31
+
+**Drone demo queries (Phase 2 targets):**
+- Demo 1 (HIGH): "What anomalies were flagged in Zone C during the August 2025 inspection?"
+- Demo 2 (PARTIAL): "Is the corrosion on the Zone B structural panel above baseline levels?"
+- Demo 3 (LOW): "What is the status of Zone X inspection?" — Zone X not in corpus, escalate
 
 ---
 
 ## Known Issues
 
-1. ~~**`detect_conflicts` only fires across collection names**~~ — **FIXED in Phase 2.** Within-collection version conflict detection added to `retriever.py:detect_conflicts`. Carrier 2017 vs 2023 conflicts now correctly surface as PARTIAL.
+1. ~~**`detect_conflicts` only fires across collection names**~~ — **FIXED.** Within-collection version conflict detection added to `retriever.py:detect_conflicts`. Carrier 2017 vs 2023 conflicts correctly surface as PARTIAL.
 
-2. **Semantic search cannot distinguish model numbers** — queries about near-miss equipment (Trane XR13, Carrier 50XC, Lennox XC25) score high against in-corpus counterparts (XR15, 48LC, SL280) and route PARTIAL instead of LOW. This is an architectural limitation of dense vector retrieval, not a bug. Accepted and documented. Production fix would require hybrid retrieval (BM25 + dense) or metadata filtering on equipment IDs.
+2. ~~**Duplicate chunks in Chroma**~~ — **FIXED.** Chroma DB dropped and re-ingested cleanly.
 
-3. **Duplicate chunks in Chroma** — ingest was run twice; all collections have 2× the expected chunk counts. See data state note above.
+3. **Semantic search cannot distinguish model numbers** — queries about near-miss equipment (Trane XR13, Carrier 50XC, Lennox XC25) score high against in-corpus counterparts (XR15, 48LC, SL280) and route PARTIAL instead of LOW. Architectural limitation of dense vector retrieval. Accepted. Production fix: hybrid retrieval (BM25 + dense) or metadata filtering.
 
-4. **Carrier 48LC airflow query retrieves Lennox content** — "airflow and static pressure settings for Carrier 48LC" returns Lennox SL280 results at top of ranking (score 0.78) because both manuals have similar airflow table content. No conflict fires. Chunking or query-formulation issue for Phase 3.
+4. **Carrier 48LC airflow query retrieves Lennox content** — "airflow and static pressure settings for Carrier 48LC" returns Lennox SL280 results at top of ranking (score 0.78) because both manuals have similar airflow table content. No conflict fires. Chunking issue; deferred to Phase 3.
+
+5. **Drone pipeline wiring incomplete (Phase 2 in progress)** — `classifier.py`, `session_memory.py`, retriever spatial filters, and dual-domain `assistant.py` are written but the full `SiteIntelligenceAgent` pipeline, Streamlit domain switcher, and drone eval suite are not yet done.
 
 ---
 
-## Eval Sets (Phase 2 Complete)
+## Eval Sets
 
-All three eval files are fully populated. Baseline metrics from `eval/run_eval.py`:
+**HVAC eval (Phase 1 — final baseline):**
 
 | File | Size | Correct behavior | Baseline |
 |------|------|-----------------|---------|
 | `ground_truth.json` | 50 pairs | HIGH or PARTIAL (not LOW) | **94.0%** (47/50) |
 | `adversarial.json` | 20 queries | LOW (escalate — no hallucination) | **45.0%** (9/20) |
-| `contradictions.json` | 15 scenarios | PARTIAL (conflict surfaced) | **80.0%** (12/15) — after Phase 2 conflict fix |
+| `contradictions.json` | 15 scenarios | PARTIAL (conflict surfaced) | **80.0%** (12/15) |
 | **Overall** | **85 cases** | | **80.0%** (68/85) |
 
-**Adversarial at 45% is an accepted known limitation**, not a target to hit via threshold tuning. The failures are semantically similar near-miss equipment (XR13 ≈ XR15, etc.) — unfixable with cosine similarity alone. Score distributions for ground truth passes and adversarial failures overlap; raising `PARTIAL_THRESHOLD` sacrifices coverage faster than it gains adversarial precision.
+**Adversarial at 45% is an accepted known limitation** — failures are semantically similar near-miss equipment (XR13 ≈ XR15) unfixable with cosine similarity alone.
+
+**Drone eval (Phase 2 — not yet run):** Targets are ground truth > 80%, adversarial > 70%, classifier > 90% correct type routing. Eval files not yet built.
 
 Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10–25%.
 
@@ -128,10 +165,34 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 
 ---
 
-## Future Domain Extensions
+## Phase 2 Build Status (Drone Domain)
 
-The pipeline is domain-agnostic. Swapping the three Chroma collections is sufficient to repurpose it:
-- Drone inspection: `inspection_reports` / `flight_logs` / `site_anomalies`
+| Component | Status |
+|-----------|--------|
+| `src/generate_drone_data.py` | ✅ Written |
+| Drone data ingested to Chroma | ✅ Done (3 collections, 520 total chunks) |
+| `src/classifier.py` | ✅ Written — rule-based + LLM fallback |
+| `src/session_memory.py` | ✅ Written — zone/equipment/time entity tracking |
+| `src/retriever.py` spatial filter | ✅ Written — `build_spatial_filter()`, domain-aware `load_collections()` |
+| `src/assistant.py` dual-domain wiring | 🔄 In progress — drone system prompt + `parse_time_ref` added |
+| Streamlit domain switcher + session panel | ⬜ Not started |
+| Drone eval suite | ⬜ Not started |
+| Regression check on HVAC evals | ⬜ Not started |
+
+**Phase 2 exit criteria (from `Docs/planning/00_phase2_overview.md`):**
+- [ ] Classifier routes > 90% of queries by correct type
+- [ ] Zone-C query returns only Zone-C inspection records (spatial filter)
+- [ ] "What about last month?" resolves via session memory
+- [ ] Both HVAC and Drone demoable from same Streamlit app
+- [ ] Streaming output working
+- [ ] Drone eval: ground truth > 80%, adversarial > 70%
+- [ ] Phase 1 HVAC evals still pass (regression)
+
+---
+
+## Future Domain Extensions (Phase 3+)
+
+The pipeline is domain-agnostic — add a new collection set and a classifier rule branch:
 - Power grid construction: `safety_procedures` / `equipment_specs` / `incident_logs`
 
-No changes needed in `confidence.py`, `degradation.py`, or `assistant.py`.
+No changes needed in `confidence.py` or `degradation.py`.
