@@ -366,7 +366,7 @@ You've seen the full system.
 2 domains · 0 guesses on LOW queries
 
 Built by Nishchay Vishwanath
-Cornell MEM 2026 · GitHub
+Site Intelligence Agent · GitHub
 
 [Start over]
 ```

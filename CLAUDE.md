@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-A RAG-based Site Intelligence Agent (Cornell MEM capstone, submission April 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
+A RAG-based Site Intelligence Agent. Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
 **Phase 1 (HVAC) is complete and submitted.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, drone data layer, dual-domain `SiteIntelligenceAgent`, and multi-page Streamlit app are written; drone eval suite is next.
 

@@ -30,3 +30,6 @@ Thumbs.db
 # Claude Code local settings
 .claude/
 slides/.claude/
+
+# Archived private course materials
+Docs/archive/course_materials/

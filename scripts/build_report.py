@@ -110,7 +110,7 @@ run2.font.color.rgb = RGBColor(0x16, 0x48, 0x7B)
 
 meta = doc.add_paragraph()
 meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-meta.add_run("Nishchay Vishwanath  |  Cornell MEM  |  April 2026").font.size = Pt(10)
+meta.add_run("Site Intelligence Agent  |  April 2026").font.size = Pt(10)
 
 add_hr(doc)
 
@@ -381,7 +381,7 @@ add_hr(doc)
 # ── Footer ──
 footer_p = doc.add_paragraph()
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-footer_run = footer_p.add_run("Nishchay Vishwanath  |  Cornell MEM  |  April 2026")
+footer_run = footer_p.add_run("Site Intelligence Agent  |  April 2026")
 footer_run.font.size = Pt(9)
 footer_run.font.color.rgb = RGBColor(0x99, 0x99, 0x99)
 

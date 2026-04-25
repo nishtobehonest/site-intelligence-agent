@@ -1,6 +1,6 @@
 # Site Intelligence Agent
 
-**Nishchay Vishwanath | Cornell MEM | April 2026**
+**Site Intelligence Agent | April 2026**
 
 ---
 

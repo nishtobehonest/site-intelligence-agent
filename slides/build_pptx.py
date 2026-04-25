@@ -159,7 +159,7 @@ def build_deck():
 
     # Slide 1
     slide = new_slide()
-    add_badge(slide, Inches(0.55), Inches(0.38), "Cornell MEM · April 2026", RGBColor(30, 58, 95), ACCENT)
+    add_badge(slide, Inches(0.55), Inches(0.38), "Site Intelligence Agent · April 2026", RGBColor(30, 58, 95), ACCENT)
     add_textbox(slide, Inches(0.7), Inches(1.15), Inches(6.2), Inches(1.1),
                 "Site Intelligence\nAgent", font_size=28, color=TEXT, bold=True)
     add_textbox(slide, Inches(0.72), Inches(2.25), Inches(7.0), Inches(0.5),

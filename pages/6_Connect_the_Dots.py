@@ -73,7 +73,7 @@ st.markdown(
         2 domains · 0 guesses on LOW queries
       </p>
       <p style="color:{TEXT};font-weight:700;margin:0;">
-        Built by Nishchay Vishwanath · Cornell MEM 2026
+        Built by Nishchay Vishwanath · Site Intelligence Agent
       </p>
     </div>
     """,

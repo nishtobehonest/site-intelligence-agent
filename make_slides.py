@@ -172,7 +172,7 @@ def build_slide1(prs):
                  "Site Intelligence Agent — System Architecture",
                  font_size=Pt(20), bold=True, color=C_WHITE)
     add_text_box(slide, Inches(10.2), Inches(0.12), Inches(2.9), Inches(0.38),
-                 "Nishchay Vishwanath · Cornell MEM · April 2026",
+                 "Site Intelligence Agent · April 2026",
                  font_size=Pt(10), bold=False, color=C_LIGHT, align=PP_ALIGN.RIGHT)
 
     # ── column x-centres (5 columns: input | step1 | collections | step2+3 | step4+outputs) ──
@@ -342,7 +342,7 @@ def build_slide2(prs):
                  "Graceful Degradation — The Core Differentiator",
                  font_size=Pt(22), bold=True, color=C_WHITE)
     add_text_box(slide, Inches(9.8), Inches(0.14), Inches(3.3), Inches(0.40),
-                 "Nishchay Vishwanath · Cornell MEM · April 2026",
+                 "Site Intelligence Agent · April 2026",
                  font_size=Pt(10), color=C_LIGHT, align=PP_ALIGN.RIGHT)
 
     # subtitle

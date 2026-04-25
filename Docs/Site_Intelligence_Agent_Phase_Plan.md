@@ -1,6 +1,6 @@
 # Site Intelligence Agent — Phase by Phase Build Plan
-**From ENMGT 5400 Submission to Portfolio-Ready Product**
-Nishchay Vishwanath · nv268 · Cornell MEM 2026 · Private planning document
+**From prototype to portfolio-ready product**
+Private planning document
 
 ---
 
@@ -21,7 +21,7 @@ Build version by version. Each phase produces something real that works. Never p
 ---
 
 ## Phase 1: Foundation Build
-**ENMGT 5400 Deliverable · April 15 – May 13 · ~35 hours**
+**Initial build phase · April 15 – May 13 · ~35 hours**
 
 **Goal:** A working prototype that demonstrates the full agentic pipeline: query in, confidence-scored answer out, all three routing paths (HIGH / PARTIAL / LOW) visible in the dashboard.
 
@@ -242,6 +242,6 @@ print(results[0])  # Should return a real inspection record with score > 0.50
 | April 22 | Retrieval pipeline working with synthetic data |
 | April 29 | All three graceful degradation paths firing |
 | May 6 | Dashboard running, eval framework built |
-| May 13 | ENMGT 5400 submitted |
+| May 13 | Phase 1 complete |
 | June 2026 | Phase 2 complete — multi-agent + real data |
 | August 2026 | Phase 3 complete — deployed and pitched to target companies |

@@ -63,7 +63,7 @@ with left:
         f"""
         <p style="color:{ACCENT};font-size:0.78rem;font-weight:800;letter-spacing:0.14em;
                   text-transform:uppercase;margin:1.25rem 0 1rem 0;">
-          Cornell MEM Capstone · Nishchay Vishwanath · April 2026
+          Site Intelligence Agent · Nishchay Vishwanath · April 2026
         </p>
         <h1 style="font-size:3.7rem;line-height:1.02;color:{TEXT};font-weight:850;margin:0 0 1.5rem 0;">
           AI that knows<br>what it doesn't know.
