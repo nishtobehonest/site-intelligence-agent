@@ -7,6 +7,7 @@ Site overview page for the walkthrough.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -22,6 +23,11 @@ SEVERITY_COLORS = {
     "MEDIUM": ("#b45309", "#fffbeb"),
     "LOW": ("#15803d", "#f0fdf4"),
 }
+MAP_COLORS = {
+    "HIGH": ("#dc2626", "#fef2f2"),
+    "MEDIUM": ("#d97706", "#fffbeb"),
+    "LOW": ("#16a34a", "#f0fdf4"),
+}
 
 
 @st.cache_data
@@ -36,6 +42,143 @@ def worst_severity(records: list[dict]) -> str:
     if not records:
         return "LOW"
     return max((r["severity"] for r in records), key=lambda s: SEVERITY_RANK.get(s, 0))
+
+
+def parse_coordinates(value: str) -> tuple[float, float] | None:
+    match = re.search(r"([\d.]+)°\s*([NS]),\s*([\d.]+)°\s*([EW])", value or "")
+    if not match:
+        return None
+
+    lat = float(match.group(1)) * (-1 if match.group(2) == "S" else 1)
+    lon = float(match.group(3)) * (-1 if match.group(4) == "W" else 1)
+    return lat, lon
+
+
+def zone_summary(zone: str, zone_records: list[dict]) -> dict:
+    severity = worst_severity(zone_records)
+    counts = Counter(r["severity"] for r in zone_records)
+    latest = max(zone_records, key=lambda r: r["flight_date"]) if zone_records else {}
+    parsed_points = [parse_coordinates(r.get("coordinates", "")) for r in zone_records]
+    points = [point for point in parsed_points if point is not None]
+    lat = sum(point[0] for point in points) / len(points) if points else 0
+    lon = sum(point[1] for point in points) / len(points) if points else 0
+    site_counts = Counter(r["site_id"] for r in zone_records)
+    site_id = site_counts.most_common(1)[0][0] if site_counts else "Unknown site"
+
+    return {
+        "zone": zone,
+        "records": len(zone_records),
+        "severity": severity,
+        "counts": counts,
+        "latest": latest,
+        "lat": lat,
+        "lon": lon,
+        "site_id": site_id,
+    }
+
+
+def marker_position(summary: dict, lat_min: float, lat_max: float, lon_min: float, lon_max: float) -> tuple[float, float]:
+    lat_span = max(lat_max - lat_min, 0.0001)
+    lon_span = max(lon_max - lon_min, 0.0001)
+    x = 8 + ((summary["lon"] - lon_min) / lon_span) * 84
+    y = 82 - ((summary["lat"] - lat_min) / lat_span) * 64
+    return x, y
+
+
+def render_site_map(summaries: list[dict]) -> None:
+    lats = [summary["lat"] for summary in summaries]
+    lons = [summary["lon"] for summary in summaries]
+    lat_min, lat_max = min(lats), max(lats)
+    lon_min, lon_max = min(lons), max(lons)
+
+    markers = []
+    for summary in summaries:
+        color, bg = MAP_COLORS[summary["severity"]]
+        x, y = marker_position(summary, lat_min, lat_max, lon_min, lon_max)
+        selected = summary["zone"] == "Zone-C"
+        border = "3px solid #1A1A2E" if selected else "2px solid white"
+        shadow = "0 0 0 5px rgba(26,26,46,0.14)" if selected else "0 10px 24px rgba(15,23,42,0.14)"
+        markers.append(
+            f"""
+            <div class="site-marker" style="left:{x:.2f}%;top:{y:.2f}%;
+                        background:{bg};border:{border};box-shadow:{shadow};">
+              <div style="display:flex;align-items:center;gap:0.45rem;">
+                <span style="width:0.72rem;height:0.72rem;border-radius:999px;background:{color};
+                             display:inline-block;"></span>
+                <strong>{summary["zone"]}</strong>
+              </div>
+              <div style="font-size:0.78rem;color:#4B5563;margin-top:0.15rem;">
+                {summary["severity"]} · {summary["records"]} records
+              </div>
+            </div>
+            """
+        )
+
+    st.markdown(
+        f"""
+        <style>
+          .site-map {{
+            position: relative;
+            min-height: 520px;
+            border: 1px solid #CBD5E1;
+            border-radius: 12px;
+            overflow: hidden;
+            background:
+              linear-gradient(90deg, rgba(148,163,184,0.26) 1px, transparent 1px),
+              linear-gradient(rgba(148,163,184,0.26) 1px, transparent 1px),
+              radial-gradient(circle at 18% 22%, rgba(20,184,166,0.22), transparent 18%),
+              radial-gradient(circle at 78% 74%, rgba(14,165,233,0.18), transparent 22%),
+              #F8FAFC;
+            background-size: 48px 48px, 48px 48px, auto, auto, auto;
+          }}
+          .site-map::before {{
+            content: "";
+            position: absolute;
+            inset: 54px 72px;
+            border: 2px dashed rgba(71,85,105,0.24);
+            border-radius: 38px;
+            transform: rotate(-8deg);
+          }}
+          .site-map::after {{
+            content: "Inspection site coordinate view";
+            position: absolute;
+            left: 1rem;
+            bottom: 0.85rem;
+            color: #64748B;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+          }}
+          .site-marker {{
+            position: absolute;
+            transform: translate(-50%, -50%);
+            min-width: 148px;
+            border-radius: 8px;
+            padding: 0.7rem 0.8rem;
+            color: #1A1A2E;
+          }}
+          .map-legend {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            margin-top: 0.65rem;
+            color: #4B5563;
+            font-size: 0.86rem;
+          }}
+        </style>
+        <div class="site-map">
+          {''.join(markers)}
+        </div>
+        <div class="map-legend">
+          <span><strong>Map basis:</strong> zone coordinates from inspection records</span>
+          <span>Red = HIGH</span>
+          <span>Amber = MEDIUM</span>
+          <span>Green = LOW</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 records = load_records()
@@ -57,24 +200,29 @@ if not records:
     st.warning("Drone inspection records were not found. Add data/raw/drone/inspection_records.json to populate this page.")
 else:
     zones = sorted(by_zone)
-    cols = st.columns(len(zones))
-    for col, zone in zip(cols, zones):
-        zone_records = by_zone[zone]
-        severity = worst_severity(zone_records)
-        color, bg = SEVERITY_COLORS[severity]
-        counts = Counter(r["severity"] for r in zone_records)
-        border = "3px solid #1A1A2E" if zone == "Zone-C" else f"1.5px solid {color}"
-        with col:
+    summaries = [zone_summary(zone, by_zone[zone]) for zone in zones]
+
+    map_col, detail_col = st.columns([2.1, 1])
+    with map_col:
+        render_site_map(summaries)
+
+    with detail_col:
+        st.subheader("Zone risk rollup")
+        for summary in summaries:
+            severity = summary["severity"]
+            color, bg = SEVERITY_COLORS[severity]
+            counts = summary["counts"]
+            border = "3px solid #1A1A2E" if summary["zone"] == "Zone-C" else f"1.5px solid {color}"
             st.markdown(
                 f"""
-                <div style="background:{bg};border:{border};border-radius:14px;padding:1rem;
-                            min-height:190px;">
-                  <p style="margin:0;color:#6B7280;font-size:0.75rem;font-weight:800;
-                            letter-spacing:0.08em;text-transform:uppercase;">Inspection Zone</p>
-                  <h3 style="margin:0.25rem 0 0.6rem 0;color:#1A1A2E;">{zone}</h3>
-                  <p style="margin:0 0 0.7rem 0;color:{color};font-weight:800;">{severity} risk</p>
-                  <p style="margin:0;color:#4B5563;font-size:0.9rem;line-height:1.45;">
-                    {len(zone_records)} records<br>
+                <div style="background:{bg};border:{border};border-radius:8px;padding:0.7rem 0.85rem;
+                            margin-bottom:0.65rem;">
+                  <div style="display:flex;justify-content:space-between;gap:0.8rem;align-items:flex-start;">
+                    <strong style="color:#1A1A2E;font-size:1rem;">{summary["zone"]}</strong>
+                    <span style="color:{color};font-weight:800;font-size:0.82rem;">{severity}</span>
+                  </div>
+                  <p style="margin:0.35rem 0 0;color:#4B5563;font-size:0.83rem;line-height:1.35;">
+                    {summary["records"]} records · {summary["site_id"]}<br>
                     HIGH: {counts.get("HIGH", 0)} · MEDIUM: {counts.get("MEDIUM", 0)} · LOW: {counts.get("LOW", 0)}
                   </p>
                 </div>
@@ -83,17 +231,33 @@ else:
             )
 
     st.markdown("---")
-    zone_c_records = sorted(by_zone.get("Zone-C", []), key=lambda r: r["flight_date"], reverse=True)
     st.subheader("Zone C is the walkthrough hotspot")
+
+    zone_c_records = sorted(by_zone.get("Zone-C", []), key=lambda r: r["flight_date"], reverse=True)
+    c1, c2, c3 = st.columns(3)
+    zone_c_counts = Counter(r["severity"] for r in zone_c_records)
+    c1.metric("Zone C records", len(zone_c_records))
+    c2.metric("HIGH findings", zone_c_counts.get("HIGH", 0))
+    c3.metric("Sites represented", len({r["site_id"] for r in zone_c_records}))
+
     if zone_c_records:
         latest = zone_c_records[0]
+        severity = latest["severity"]
+        color, bg = SEVERITY_COLORS[severity]
         st.markdown(
             f"""
-            **Latest Zone C finding:** `{latest["record_id"]}` · `{latest["flight_date"]}` ·
-            `{latest["equipment_type"]}` · `{latest["anomaly_type"]}` · **{latest["severity"]}**
-
-            {latest["inspector_notes"][:520]}...
+            <div style="background:{bg};border:1.5px solid {color};border-radius:8px;padding:1rem;margin-top:0.6rem;">
+              <p style="margin:0 0 0.35rem 0;color:#6B7280;font-size:0.75rem;font-weight:800;
+                        letter-spacing:0.08em;text-transform:uppercase;">Latest Zone C finding</p>
+              <h4 style="margin:0;color:#1A1A2E;">{latest["record_id"]} · {latest["flight_date"]} · {latest["equipment_type"]}</h4>
+              <p style="margin:0.4rem 0;color:{color};font-weight:800;">{latest["anomaly_type"]} · {severity}</p>
+              <p style="margin:0;color:#4B5563;font-size:0.9rem;line-height:1.45;">
+                {latest["inspector_notes"][:520]}...
+              </p>
+            </div>
             """
+            ,
+            unsafe_allow_html=True,
         )
 
     if st.button("Investigate Zone C →", type="primary", use_container_width=True):
