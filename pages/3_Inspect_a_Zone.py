@@ -39,6 +39,78 @@ PRESETS = [
 ]
 
 
+def _format_filter(where_filter: dict) -> str:
+    """Convert the Chroma where filter into a readable demo label."""
+    if not where_filter:
+        return "No spatial filter; searched selected collections"
+
+    zone_filter = where_filter.get("zone_id")
+    if isinstance(zone_filter, dict) and "$eq" in zone_filter:
+        return f"Restricted to {zone_filter['$eq']}"
+
+    return "Spatial filter applied"
+
+
+def _format_route(route_type: str) -> str:
+    if route_type == "HIGH":
+        return "HIGH confidence: answer with citations"
+    if route_type == "PARTIAL":
+        return "PARTIAL confidence: answer with uncertainty warning"
+    return "LOW confidence: escalate instead of guessing"
+
+
+def render_pipeline_trace(trace: dict, route_type: str, top_score: float) -> None:
+    """Render the drone pipeline as a readable decision path for demos."""
+    classification = trace.get("classification", {})
+    query_type = classification.get("query_type", "Unknown")
+    classifier_conf = classification.get("confidence", 0.0)
+    via_llm = classification.get("via_llm", False)
+    route = trace.get("route")
+
+    st.markdown("### Pipeline decision path")
+
+    if route == "OUT_OF_SCOPE_SHORT_CIRCUIT":
+        st.info("1. Classified as out of scope, so retrieval and LLM generation were skipped.")
+        st.warning("2. Routed to LOW confidence escalation.")
+        return
+
+    if route == "UNKNOWN_ZONE_LOW":
+        zone = classification.get("zone") or "Unknown zone"
+        st.info(f"1. Classified as `{query_type}` and detected `{zone}`.")
+        st.warning("2. Zone is not in the site corpus, so retrieval and LLM generation were skipped.")
+        return
+
+    st.markdown(
+        f"**1. Classify**  \n"
+        f"`{query_type}` at {classifier_conf:.0%} confidence "
+        f"using {'LLM classifier' if via_llm else 'rule-based fast path'}."
+    )
+    st.markdown(f"**2. Filter**  \n{_format_filter(trace.get('filter', {}))}.")
+
+    filtered_count = trace.get("result_count_filtered", 0)
+    fallback = trace.get("fallback")
+    fallback_count = trace.get("result_count_fallback")
+    if fallback:
+        st.markdown(
+            f"**3. Retrieve**  \n"
+            f"Filtered search found {filtered_count} results, then fallback searched the full corpus "
+            f"and found {fallback_count} results."
+        )
+    else:
+        st.markdown(f"**3. Retrieve**  \nFound {filtered_count} relevant records.")
+
+    conflict = trace.get("conflict", False)
+    conflict_text = "conflict detected" if conflict else "no source conflict detected"
+    st.markdown(
+        f"**4. Score**  \n"
+        f"Top similarity score `{top_score:.2f}`; routed as `{trace.get('confidence', route_type)}`; "
+        f"{conflict_text}."
+    )
+
+    llm_text = "LLM called to generate a cited answer" if route_type in ("HIGH", "PARTIAL") else "LLM skipped to avoid hallucination"
+    st.markdown(f"**5. Decide**  \n{_format_route(route_type)}. {llm_text}.")
+
+
 @st.cache_resource(show_spinner="Loading drone inspection knowledge base...")
 def load_agent():
     return SiteIntelligenceAgent()
@@ -49,6 +121,7 @@ if "drone_memory" not in st.session_state:
 
 if st.session_state.get("walkthrough_arrived_from_zone") and st.session_state.get("walkthrough_zone_query"):
     st.session_state["drone_query"] = st.session_state["walkthrough_zone_query"]
+    st.session_state["drone_input"] = st.session_state["walkthrough_zone_query"]
 elif st.session_state.get("walkthrough_zone_query") and "drone_query" not in st.session_state:
     st.session_state["drone_query"] = st.session_state["walkthrough_zone_query"]
 
@@ -83,10 +156,16 @@ with st.sidebar:
     render_why_it_matters("drone")
 
 st.markdown("**Quick demos:**")
+if "drone_input" not in st.session_state:
+    st.session_state["drone_input"] = st.session_state.get("drone_query", "")
+
+preset_query = None
 btn_cols = st.columns(4)
 for i, preset in enumerate(PRESETS):
     if btn_cols[i].button(preset["label"], use_container_width=True):
-        st.session_state["drone_query"] = preset["query"]
+        preset_query = preset["query"]
+        st.session_state["drone_query"] = preset_query
+        st.session_state["drone_input"] = preset_query
 
 st.markdown("")
 
@@ -95,18 +174,19 @@ col_in, col_mid, col_out = st.columns([2, 2, 3])
 with col_in:
     query = st.text_area(
         "Inspector question",
-        value=st.session_state.get("drone_query", ""),
         height=120,
         placeholder="Ask about inspection anomalies, OSHA compliance, or historical baselines...",
         key="drone_input",
     )
     submit = st.button("Ask", type="primary", use_container_width=True)
 
-if submit and query.strip():
+active_query = preset_query or (query if submit else "")
+
+if active_query.strip():
     agent = load_agent()
 
     with st.spinner("Classifying and retrieving..."):
-        result = agent.ask(query, session_memory=memory)
+        result = agent.ask(active_query, session_memory=memory)
 
     trace = result.get("pipeline_trace", {})
     classification = trace.get("classification", {})
@@ -127,8 +207,7 @@ if submit and query.strip():
         st.metric("Time reference", time_ref)
         st.caption("LLM path" if via_llm else "Rule-based (fast path)")
 
-        with st.expander("Full pipeline trace", expanded=False):
-            st.json(trace)
+        render_pipeline_trace(trace, result["route_type"], result["top_score"])
 
     with col_out:
         st.markdown("### Answer")
@@ -148,7 +227,7 @@ if submit and query.strip():
         render_source_expander(result["sources"], result["route_type"])
         render_escalation_warning(result["route_type"])
 
-elif not submit:
+else:
     with col_mid:
         st.markdown("### Classification")
         st.markdown("*Classification panel will populate after a query.*")

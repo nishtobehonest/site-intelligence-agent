@@ -149,10 +149,16 @@ with tab_agent:
     # Preset buttons
     st.info("Try these three queries in order. Each one shows a different routing path.")
     st.markdown("**Quick demos — one per routing path:**")
+    if "hvac_input" not in st.session_state:
+        st.session_state["hvac_input"] = st.session_state.get("hvac_query", "")
+
+    preset_query = None
     btn_cols = st.columns(3)
     for i, preset in enumerate(PRESETS):
         if btn_cols[i].button(preset["label"], use_container_width=True):
-            st.session_state["hvac_query"] = preset["query"]
+            preset_query = preset["query"]
+            st.session_state["hvac_query"] = preset_query
+            st.session_state["hvac_input"] = preset_query
 
     st.markdown("")
 
@@ -162,7 +168,6 @@ with tab_agent:
     with col_in:
         query = st.text_area(
             "Technician question",
-            value=st.session_state.get("hvac_query", ""),
             height=120,
             placeholder="Ask about equipment procedures, OSHA requirements, or job history...",
             key="hvac_input",
@@ -170,11 +175,12 @@ with tab_agent:
         submit = st.button("Ask", type="primary", use_container_width=True)
 
     with col_out:
-        if submit and query.strip():
+        active_query = preset_query or (query if submit else "")
+        if active_query.strip():
             assistant = load_assistant()
 
             with st.spinner("Retrieving documents and generating response..."):
-                result = assistant.ask(query)
+                result = assistant.ask(active_query)
 
             # Badge
             st.markdown(
@@ -225,7 +231,7 @@ with tab_agent:
                     "What a standard LLM would do: generate an answer with no source. "
                     "What this system did: escalate."
                 )
-        elif not submit:
+        else:
             st.markdown("*Results will appear here after you submit a query.*")
 
     render_next_step(

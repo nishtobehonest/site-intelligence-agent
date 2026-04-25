@@ -92,30 +92,75 @@ def site_zone_summaries(all_records: list[dict]) -> list[dict]:
     return summaries
 
 
-def marker_position(summary: dict, lat_min: float, lat_max: float, lon_min: float, lon_max: float) -> tuple[float, float]:
+def marker_position(summary: dict, site_layout: dict[str, dict]) -> tuple[float, float]:
+    """
+    Position zones by site first, then fan out each site's zones.
+
+    The synthetic records use real city coordinates, so Austin and Denver are
+    hundreds of miles apart while zones within one site differ by only a few
+    decimal places. A direct lat/lon projection collapses each site's zones
+    into a single stack. This keeps the coordinate-derived site ordering while
+    giving every zone a stable, visible slot inside its site cluster.
+    """
+    layout = site_layout[summary["site_id"]]
+    zone_count = max(layout["zone_count"], 1)
+    zone_index = layout["zone_order"].get(summary["zone"], 0)
+    spread = min(46, 18 * max(zone_count - 1, 0))
+    zone_offset = 0 if zone_count == 1 else -spread / 2 + (spread * zone_index / (zone_count - 1))
+    return layout["x"], layout["y"] + zone_offset
+
+
+def build_site_layout(summaries: list[dict]) -> dict[str, dict]:
+    sites: dict[str, dict] = {}
+    for summary in summaries:
+        site = sites.setdefault(summary["site_id"], {"lats": [], "lons": [], "zones": set()})
+        site["lats"].append(summary["lat"])
+        site["lons"].append(summary["lon"])
+        site["zones"].add(summary["zone"])
+
+    site_points = []
+    for site_id, site in sites.items():
+        site_points.append(
+            {
+                "site_id": site_id,
+                "lat": sum(site["lats"]) / len(site["lats"]),
+                "lon": sum(site["lons"]) / len(site["lons"]),
+                "zones": sorted(site["zones"]),
+            }
+        )
+
+    lat_values = [site["lat"] for site in site_points]
+    lon_values = [site["lon"] for site in site_points]
+    lat_min, lat_max = min(lat_values), max(lat_values)
+    lon_min, lon_max = min(lon_values), max(lon_values)
     lat_span = max(lat_max - lat_min, 0.0001)
     lon_span = max(lon_max - lon_min, 0.0001)
-    x = 8 + ((summary["lon"] - lon_min) / lon_span) * 84
-    y = 82 - ((summary["lat"] - lat_min) / lat_span) * 64
-    return x, y
+
+    layout = {}
+    for site in site_points:
+        x = 22 + ((site["lon"] - lon_min) / lon_span) * 56
+        y = 72 - ((site["lat"] - lat_min) / lat_span) * 44
+        layout[site["site_id"]] = {
+            "x": x,
+            "y": y,
+            "zone_count": len(site["zones"]),
+            "zone_order": {zone: index for index, zone in enumerate(site["zones"])},
+        }
+    return layout
 
 
 def render_site_map(summaries: list[dict]) -> None:
-    lats = [summary["lat"] for summary in summaries]
-    lons = [summary["lon"] for summary in summaries]
-    lat_min, lat_max = min(lats), max(lats)
-    lon_min, lon_max = min(lons), max(lons)
-
+    site_layout = build_site_layout(summaries)
     markers = []
     for summary in summaries:
         color, bg = MAP_COLORS[summary["severity"]]
-        x, y = marker_position(summary, lat_min, lat_max, lon_min, lon_max)
+        x, y = marker_position(summary, site_layout)
         selected = summary["zone"] == "Zone-C"
         border = "3px solid #1A1A2E" if selected else "2px solid white"
         shadow = "0 0 0 5px rgba(26,26,46,0.14)" if selected else "0 10px 24px rgba(15,23,42,0.14)"
         markers.append(
             dedent(f"""
-            <div class="site-marker" style="left:{x:.2f}%;top:{y:.2f}%;
+            <div class="site-marker" style="--x:{x:.2f}%;--y:{y:.2f}%;
                         background:{bg};border:{border};box-shadow:{shadow};">
               <div style="display:flex;align-items:center;gap:0.45rem;">
                 <span style="width:0.72rem;height:0.72rem;border-radius:999px;background:{color};
@@ -171,11 +216,14 @@ def render_site_map(summaries: list[dict]) -> None:
         }}
         .site-marker {{
           position: absolute;
-          transform: translate(-50%, -50%);
-          min-width: 148px;
+          left: clamp(0.75rem, calc(var(--x) - 5.5rem), calc(100% - 11.75rem));
+          top: clamp(0.75rem, calc(var(--y) - 2.4rem), calc(100% - 5.9rem));
+          width: 11rem;
+          box-sizing: border-box;
           border-radius: 8px;
           padding: 0.7rem 0.8rem;
           color: #1A1A2E;
+          z-index: 1;
         }}
         .map-legend {{
           display: flex;
