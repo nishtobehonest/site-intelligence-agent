@@ -1,5 +1,5 @@
 """
-Generate a 2-slide PPTX for the Field Service Intelligence Assistant demo.
+Generate a 2-slide PPTX for the Site Intelligence Agent demo.
 
 Slide 1 — System Architecture: 4-step pipeline + 3 Chroma collections
 Slide 2 — Graceful Degradation: the 3 routing paths with demo examples
@@ -169,7 +169,7 @@ def build_slide1(prs):
     add_rect(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.62),
              fill=C_PURPLE, line_color=None, radius=False)
     add_text_box(slide, Inches(0.2), Inches(0.08), Inches(10), Inches(0.44),
-                 "Field Service Intelligence Assistant — System Architecture",
+                 "Site Intelligence Agent — System Architecture",
                  font_size=Pt(20), bold=True, color=C_WHITE)
     add_text_box(slide, Inches(10.2), Inches(0.12), Inches(2.9), Inches(0.38),
                  "Nishchay Vishwanath · Cornell MEM · April 2026",
@@ -476,6 +476,6 @@ if __name__ == "__main__":
     prs = new_prs()
     build_slide1(prs)
     build_slide2(prs)
-    out = "Field_Service_Assistant_Slides.pptx"
+    out = "Site_Intelligence_Agent_Slides.pptx"
     prs.save(out)
     print(f"Saved: {out}")

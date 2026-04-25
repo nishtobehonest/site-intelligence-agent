@@ -25,7 +25,7 @@ from src import llm
 
 load_dotenv()
 
-SYSTEM_PROMPT = """You are a Field Service Intelligence Assistant helping technicians, inspectors, and field engineers retrieve accurate information during a job.
+SYSTEM_PROMPT = """You are a Site Intelligence Agent helping technicians, inspectors, and field engineers retrieve accurate information during a job.
 
 Your rules:
 1. Answer ONLY based on the provided context. Do not use outside knowledge.

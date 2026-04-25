@@ -230,7 +230,7 @@ with c1:
           <p style="color:{ACCENT};font-size:0.72rem;font-weight:700;letter-spacing:0.1em;
                     text-transform:uppercase;margin:0 0 0.4rem 0;">Phase 1 · Complete</p>
           <p style="color:{TEXT};font-weight:700;font-size:1.05rem;margin:0 0 0.4rem 0;">
-            🔧 HVAC Field Service Agent
+            🔧 HVAC Site Intelligence Agent
           </p>
           <p style="color:{MUTED};font-size:0.85rem;line-height:1.5;margin:0 0 1rem 0;">
             RAG pipeline with confidence scoring and graceful degradation.
@@ -300,7 +300,7 @@ st.markdown(
     <p style="color:{MUTED};font-size:0.8rem;margin:0.5rem 0;">
       Nishchay Vishwanath · Cornell MEM 2026 ·
       RAG + Confidence Routing + Graceful Degradation ·
-      <a href="https://github.com/nishtobehonest/field-service-assistant"
+      <a href="https://github.com/nishtobehonest/site-intelligence-agent"
          style="color:{ACCENT};text-decoration:none;">GitHub ↗</a>
     </p>
     """,

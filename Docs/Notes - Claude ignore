@@ -1,0 +1,14 @@
+
+Rag Pipeline:
+1. HVAC
+2. 3 chroma 
+3.         - OSHA, Job History, 
+4. Confidence routing
+    - EVALs
+
+== 1st Submission
+
+- Drone Inspection
+= data + ingestion
+= Classifier - session memory
+= retriever = 

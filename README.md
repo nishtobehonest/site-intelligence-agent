@@ -1,4 +1,4 @@
-# Field Service Intelligence Assistant
+# Site Intelligence Agent
 
 **Nishchay Vishwanath | Cornell MEM | April 2026**
 

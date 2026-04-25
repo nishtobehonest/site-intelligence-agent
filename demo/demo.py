@@ -57,7 +57,7 @@ def run_interactive(assistant: FieldServiceAssistant):
 
 def main():
     print(DIVIDER)
-    print("FIELD SERVICE INTELLIGENCE ASSISTANT")
+    print("SITE INTELLIGENCE AGENT")
     print("Nishchay Vishwanath | Cornell MEM | April 2026")
     print(DIVIDER)
 

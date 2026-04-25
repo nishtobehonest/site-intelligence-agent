@@ -107,7 +107,7 @@ def print_summary(label: str, stats: dict):
 
 
 def main():
-    print("=== Field Service Assistant: Evaluation Run ===\n")
+    print("=== Site Intelligence Agent: Evaluation Run ===\n")
     assistant = FieldServiceAssistant()
 
     ground_truth = load_json("ground_truth.json")

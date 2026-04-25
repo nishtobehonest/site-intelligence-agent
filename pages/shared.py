@@ -12,7 +12,7 @@ import streamlit as st
 
 AGENTS = {
     "hvac": {
-        "name": "HVAC Field Service Agent",
+        "name": "HVAC Site Intelligence Agent",
         "domain": "HVAC",
         "phase": "Phase 1",
         "tagline": "RAG pipeline with graceful degradation for field technicians",

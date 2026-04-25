@@ -37,7 +37,7 @@ def render() -> None:
         <div style="padding:2rem 0 1rem 0;">
           <p style="color:{ACCENT};font-size:0.85rem;font-weight:600;letter-spacing:0.12em;
                     text-transform:uppercase;margin-bottom:0.4rem;">
-            HVAC Field Service Agent · Phase 1
+            HVAC Site Intelligence Agent · Phase 1
           </p>
           <h1 style="font-size:2.4rem;font-weight:800;color:{TEXT};
                      line-height:1.15;margin:0 0 0.8rem 0;">

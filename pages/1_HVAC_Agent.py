@@ -1,7 +1,7 @@
 """
 pages/1_HVAC_Agent.py
 ----------------------
-HVAC Field Service Agent — query UI with pipeline trace.
+HVAC Site Intelligence Agent — query UI with pipeline trace.
 """
 
 import os
@@ -74,7 +74,7 @@ def build_hvac_trace(result: dict) -> dict:
 # Header
 # ---------------------------------------------------------------------------
 
-st.title("🔧 HVAC Field Service Agent")
+st.title("🔧 HVAC Site Intelligence Agent")
 st.caption("Phase 1 · RAG + confidence scoring + graceful degradation")
 
 st.markdown(

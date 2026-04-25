@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-A RAG-based Field Service Intelligence Assistant (Cornell MEM capstone, submission April 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
+A RAG-based Site Intelligence Agent (Cornell MEM capstone, submission April 2026). Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
-**Phase 1 (HVAC) is complete and submitted.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, and drone data layer are written; pipeline wiring and eval are next.
+**Phase 1 (HVAC) is complete and submitted.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, drone data layer, dual-domain `SiteIntelligenceAgent`, and multi-page Streamlit app are written; drone eval suite is next.
 
 ---
 
@@ -49,6 +49,8 @@ pytest tests/
 CONFIDENCE_HIGH_THRESHOLD=0.80 CONFIDENCE_PARTIAL_THRESHOLD=0.55 python demo/demo.py
 ```
 Or set these in `.env`. Raising `HIGH_THRESHOLD` reduces hallucination risk; raising `PARTIAL_THRESHOLD` increases escalation rate.
+
+**Current tuned values (`.env`):** `CONFIDENCE_HIGH_THRESHOLD=0.79`, `CONFIDENCE_PARTIAL_THRESHOLD=0.50`.
 
 ---
 
@@ -133,7 +135,7 @@ Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py --domain al
 
 4. **Carrier 48LC airflow query retrieves Lennox content** — "airflow and static pressure settings for Carrier 48LC" returns Lennox SL280 results at top of ranking (score 0.78) because both manuals have similar airflow table content. No conflict fires. Chunking issue; deferred to Phase 3.
 
-5. **Drone pipeline wiring incomplete (Phase 2 in progress)** — `classifier.py`, `session_memory.py`, retriever spatial filters, and dual-domain `assistant.py` are written but the full `SiteIntelligenceAgent` pipeline, Streamlit domain switcher, and drone eval suite are not yet done.
+5. **Drone eval suite not yet built (Phase 2 in progress)** — `SiteIntelligenceAgent` pipeline, Streamlit multi-page app (`pages/1_HVAC_Agent.py`, `pages/2_Drone_Agent.py`, `pages/3_Eval_Dashboard.py`), classifier, session memory, and spatial filters are all done. Remaining: drone eval files, regression check on HVAC evals, and verifying streaming output.
 
 ---
 
@@ -174,8 +176,8 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 | `src/classifier.py` | ✅ Written — rule-based + LLM fallback |
 | `src/session_memory.py` | ✅ Written — zone/equipment/time entity tracking |
 | `src/retriever.py` spatial filter | ✅ Written — `build_spatial_filter()`, domain-aware `load_collections()` |
-| `src/assistant.py` dual-domain wiring | 🔄 In progress — drone system prompt + `parse_time_ref` added |
-| Streamlit domain switcher + session panel | ⬜ Not started |
+| `src/assistant.py` dual-domain wiring | ✅ Done — `SiteIntelligenceAgent` class, drone system prompt, `parse_time_ref` complete |
+| Streamlit domain switcher + session panel | ✅ Done — `pages/1_HVAC_Agent.py`, `pages/2_Drone_Agent.py`, `pages/3_Eval_Dashboard.py` |
 | Drone eval suite | ⬜ Not started |
 | Regression check on HVAC evals | ⬜ Not started |
 
@@ -183,7 +185,7 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 - [ ] Classifier routes > 90% of queries by correct type
 - [ ] Zone-C query returns only Zone-C inspection records (spatial filter)
 - [ ] "What about last month?" resolves via session memory
-- [ ] Both HVAC and Drone demoable from same Streamlit app
+- [x] Both HVAC and Drone demoable from same Streamlit app
 - [ ] Streaming output working
 - [ ] Drone eval: ground truth > 80%, adversarial > 70%
 - [ ] Phase 1 HVAC evals still pass (regression)

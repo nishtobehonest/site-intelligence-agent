@@ -230,7 +230,7 @@ def main():
     )
     args = parser.parse_args()
 
-    print("=== Field Service Intelligence Assistant: Document Ingestion ===")
+    print("=== Site Intelligence Agent: Document Ingestion ===")
     embeddings = get_embeddings()
 
     if args.domain in ("hvac", "all"):

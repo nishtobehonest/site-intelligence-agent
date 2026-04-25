@@ -19,7 +19,7 @@ from pptx.util import Inches, Pt
 
 
 ROOT = Path(__file__).resolve().parent
-OUTPUT = ROOT / "field-service-intelligence-assistant.pptx"
+OUTPUT = ROOT / "site-intelligence-agent.pptx"
 
 
 BG = RGBColor(15, 23, 42)
@@ -161,7 +161,7 @@ def build_deck():
     slide = new_slide()
     add_badge(slide, Inches(0.55), Inches(0.38), "Cornell MEM · April 2026", RGBColor(30, 58, 95), ACCENT)
     add_textbox(slide, Inches(0.7), Inches(1.15), Inches(6.2), Inches(1.1),
-                "Field Service Intelligence\nAssistant", font_size=28, color=TEXT, bold=True)
+                "Site Intelligence\nAgent", font_size=28, color=TEXT, bold=True)
     add_textbox(slide, Inches(0.72), Inches(2.25), Inches(7.0), Inches(0.5),
                 "A RAG-Based Context Retrieval System for Frontline Field Workers",
                 font_size=16, color=MUTED)
