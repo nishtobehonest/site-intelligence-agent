@@ -1,16 +1,24 @@
 """
-pages/1_HVAC_Agent.py
-----------------------
+pages/1_Ask_the_Agent.py
+------------------------
 HVAC Site Intelligence Agent — query UI with pipeline trace.
 """
 
 import os
 import streamlit as st
 from src.assistant import FieldServiceAssistant
-from pages.shared import confidence_badge_html, render_escalation_warning, render_source_expander, render_why_it_matters
-from pages._why_it_matters_content import render as render_why_it_matters_visual
+from src.ui.shared import (
+    confidence_badge_html,
+    render_escalation_warning,
+    render_next_step,
+    render_source_expander,
+    render_walkthrough_banner,
+    render_walkthrough_progress,
+    render_why_it_matters,
+)
+from src.ui.why_it_matters_content import render as render_why_it_matters_visual
 
-st.set_page_config(page_title="HVAC Agent", page_icon="🔧", layout="wide")
+st.set_page_config(page_title="Ask the Agent", page_icon="🔧", layout="wide")
 
 # ---------------------------------------------------------------------------
 # Preset queries
@@ -18,15 +26,15 @@ st.set_page_config(page_title="HVAC Agent", page_icon="🔧", layout="wide")
 
 PRESETS = [
     {
-        "label": "HIGH — Lockout/Tagout",
+        "label": "1. HIGH — Lockout/Tagout",
         "query": "What are the steps for the lockout tagout energy control procedure?",
     },
     {
-        "label": "PARTIAL — Carrier Refrigerant",
+        "label": "2. PARTIAL — Carrier Refrigerant",
         "query": "What is the recommended refrigerant charge pressure for a Carrier rooftop unit?",
     },
     {
-        "label": "LOW — Daikin VRV",
+        "label": "3. LOW — Daikin VRV",
         "query": "What are the repair procedures for a Daikin VRV system model DX300?",
     },
 ]
@@ -74,8 +82,15 @@ def build_hvac_trace(result: dict) -> dict:
 # Header
 # ---------------------------------------------------------------------------
 
-st.title("🔧 HVAC Site Intelligence Agent")
-st.caption("Phase 1 · RAG + confidence scoring + graceful degradation")
+render_walkthrough_progress(1)
+
+st.title("🔧 Ask the Agent")
+st.caption("Step 1 · Learn the three routing paths")
+render_walkthrough_banner(
+    1,
+    "You're the field technician.",
+    "You've been dispatched to a unit you've never serviced. Ask the system before you touch the equipment.",
+)
 
 st.markdown(
     """
@@ -132,6 +147,7 @@ with tab_agent:
     st.markdown("")
 
     # Preset buttons
+    st.info("Try these three queries in order. Each one shows a different routing path.")
     st.markdown("**Quick demos — one per routing path:**")
     btn_cols = st.columns(3)
     for i, preset in enumerate(PRESETS):
@@ -187,8 +203,36 @@ with tab_agent:
 
             render_source_expander(result["sources"], result["route_type"])
             render_escalation_warning(result["route_type"])
+
+            level = result["confidence_level"]
+            if level == "HIGH":
+                st.success(
+                    "Confident answer, cited source. The system found strong documentation "
+                    "and called the LLM."
+                )
+            elif level == "PARTIAL":
+                st.warning(
+                    "Two sources disagreed. The 2017 and 2023 Carrier manuals say different "
+                    "things. The system surfaced both instead of picking one. Most RAG systems "
+                    "would return one answer with no warning."
+                )
+            elif level == "LOW":
+                st.error(
+                    "The LLM was not called. A standard AI would have generated a "
+                    "confident-sounding answer, likely wrong. This system chose silence instead."
+                )
+                st.caption(
+                    "What a standard LLM would do: generate an answer with no source. "
+                    "What this system did: escalate."
+                )
         elif not submit:
             st.markdown("*Results will appear here after you submit a query.*")
+
+    render_next_step(
+        "pages/2_View_the_Site.py",
+        "Next: View the Site →",
+        "That was one unit on one rooftop. Here's what your whole site looks like.",
+    )
 
 with tab_why:
     render_why_it_matters_visual()

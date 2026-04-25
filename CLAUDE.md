@@ -135,7 +135,7 @@ Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py --domain al
 
 4. **Carrier 48LC airflow query retrieves Lennox content** — "airflow and static pressure settings for Carrier 48LC" returns Lennox SL280 results at top of ranking (score 0.78) because both manuals have similar airflow table content. No conflict fires. Chunking issue; deferred to Phase 3.
 
-5. **Drone eval suite not yet built (Phase 2 in progress)** — `SiteIntelligenceAgent` pipeline, Streamlit multi-page app (`pages/1_HVAC_Agent.py`, `pages/2_Drone_Agent.py`, `pages/3_Eval_Dashboard.py`), classifier, session memory, and spatial filters are all done. Remaining: drone eval files, regression check on HVAC evals, and verifying streaming output.
+5. **Drone eval suite not yet built (Phase 2 in progress)** — `SiteIntelligenceAgent` pipeline, Streamlit walkthrough app (`Home.py`, `pages/1_Ask_the_Agent.py` through `pages/6_Connect_the_Dots.py`), classifier, session memory, and spatial filters are all done. Remaining: drone eval files, regression check on HVAC evals, and verifying streaming output.
 
 ---
 
@@ -177,7 +177,7 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 | `src/session_memory.py` | ✅ Written — zone/equipment/time entity tracking |
 | `src/retriever.py` spatial filter | ✅ Written — `build_spatial_filter()`, domain-aware `load_collections()` |
 | `src/assistant.py` dual-domain wiring | ✅ Done — `SiteIntelligenceAgent` class, drone system prompt, `parse_time_ref` complete |
-| Streamlit domain switcher + session panel | ✅ Done — `pages/1_HVAC_Agent.py`, `pages/2_Drone_Agent.py`, `pages/3_Eval_Dashboard.py` |
+| Streamlit walkthrough app + session panel | ✅ Done — `Home.py`, `pages/1_Ask_the_Agent.py` through `pages/6_Connect_the_Dots.py` |
 | Drone eval suite | ⬜ Not started |
 | Regression check on HVAC evals | ⬜ Not started |
 

@@ -1,9 +1,9 @@
 """
-_why_it_matters_content.py
----------------------------
+why_it_matters_content.py
+-------------------------
 Rendering logic for the "Why It Matters" visual explainer.
-Underscore prefix keeps this out of Streamlit's auto nav.
-Called from 1_HVAC_Agent.py as a tab.
+Moved out of `pages/` so Streamlit does not expose it as a standalone page.
+Called from 1_Ask_the_Agent.py as a tab.
 """
 
 import streamlit as st
@@ -491,6 +491,239 @@ def render() -> None:
               not threshold tuning. This tradeoff is measured, documented, and accepted.
             </p>
           </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # -----------------------------------------------------------------------
+    # Section 5 — Site Map
+    # -----------------------------------------------------------------------
+
+    st.markdown(
+        f"""
+        <div style="margin:1.5rem 0 1.2rem 0;">
+          <p style="color:{ACCENT};font-size:0.8rem;font-weight:600;
+                    letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.3rem;">
+            Spatial view
+          </p>
+          <h2 style="font-size:1.8rem;font-weight:700;color:{TEXT};margin:0 0 0.4rem 0;">
+            Site map: where the system knows what is happening.
+          </h2>
+          <p style="color:{MUTED};font-size:0.92rem;max-width:620px;margin:0;">
+            The drone workflow is not just semantic retrieval. It is zone-aware retrieval.
+            Queries about Zone-C should resolve against Zone-C inspection records, not the full corpus.
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        f"""
+        <div style="background:{SECONDARY};border:1px solid {BORDER};border-radius:12px;padding:1.25rem;">
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:1rem;align-items:stretch;">
+            <div style="background:{BG};border:1px solid {BORDER};border-radius:10px;padding:1rem;">
+              <p style="color:{TEXT};font-size:0.82rem;font-weight:700;margin:0 0 0.75rem 0;">Facility layout</p>
+              <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.55rem;">
+                <div style="background:#ecfeff;border:1px solid #67e8f9;border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Zone-A</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Roof edge<br>Routine baseline</p>
+                </div>
+                <div style="background:{AMBER_BG};border:1px solid {AMBER_BORDER};border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Zone-B</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Drainage watch<br>Recurring moisture</p>
+                </div>
+                <div style="background:{RED_BG};border:1px solid {RED_BORDER};border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Zone-C</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Hotspot cluster<br>Active anomaly area</p>
+                </div>
+                <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Zone-D</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Mechanical access<br>Intermittent inspection data</p>
+                </div>
+                <div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Zone-E</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Compliance zone<br>Reference-heavy queries</p>
+                </div>
+                <div style="background:{BG};border:1px dashed {BORDER};border-radius:8px;padding:0.8rem;min-height:90px;">
+                  <p style="color:{TEXT};font-size:0.75rem;font-weight:700;margin:0 0 0.25rem 0;">Query flow</p>
+                  <p style="color:{MUTED};font-size:0.72rem;line-height:1.45;margin:0;">Classifier extracts zone<br>Spatial filter narrows retrieval</p>
+                </div>
+              </div>
+            </div>
+            <div style="background:{BG};border:1px solid {BORDER};border-radius:10px;padding:1rem;">
+              <p style="color:{TEXT};font-size:0.82rem;font-weight:700;margin:0 0 0.75rem 0;">Why this matters</p>
+              <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <div style="border-left:3px solid {ACCENT};padding-left:0.75rem;">
+                  <p style="color:{TEXT};font-size:0.78rem;font-weight:700;margin:0 0 0.15rem 0;">Spatial filtering</p>
+                  <p style="color:{MUTED};font-size:0.75rem;line-height:1.5;margin:0;">
+                    A Zone-C question should not retrieve Zone-A records just because the anomaly wording looks similar.
+                  </p>
+                </div>
+                <div style="border-left:3px solid {AMBER};padding-left:0.75rem;">
+                  <p style="color:{TEXT};font-size:0.78rem;font-weight:700;margin:0 0 0.15rem 0;">Operational context</p>
+                  <p style="color:{MUTED};font-size:0.75rem;line-height:1.5;margin:0;">
+                    The map turns inspection logs into something an operator can reason about by location, not just text chunks.
+                  </p>
+                </div>
+                <div style="border-left:3px solid {GREEN};padding-left:0.75rem;">
+                  <p style="color:{TEXT};font-size:0.78rem;font-weight:700;margin:0 0 0.15rem 0;">Demo narrative</p>
+                  <p style="color:{MUTED};font-size:0.75rem;line-height:1.5;margin:0;">
+                    It makes the Phase 2 story legible: classifier → spatial filter → zone-specific evidence → response.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # -----------------------------------------------------------------------
+    # Section 6 — Knowledge Gap Map
+    # -----------------------------------------------------------------------
+
+    st.markdown(
+        f"""
+        <div style="margin:1.5rem 0 1.2rem 0;">
+          <p style="color:{ACCENT};font-size:0.8rem;font-weight:600;
+                    letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.3rem;">
+            Coverage map
+          </p>
+          <h2 style="font-size:1.8rem;font-weight:700;color:{TEXT};margin:0 0 0.4rem 0;">
+            Knowledge gap map: where the corpus is weak.
+          </h2>
+          <p style="color:{MUTED};font-size:0.92rem;max-width:620px;margin:0;">
+            A good system does not hide uncertainty. It shows where retrieval coverage is strong,
+            where conflicts appear, and where the correct answer is to escalate.
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        f"""
+        <div style="background:{SECONDARY};border:1px solid {BORDER};border-radius:12px;padding:1.25rem;">
+          <div style="background:{BG};border:1px solid {BORDER};border-radius:10px;padding:1rem;overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;padding:0.65rem;border-bottom:1px solid {BORDER};color:{TEXT};">Knowledge area</th>
+                  <th style="text-align:left;padding:0.65rem;border-bottom:1px solid {BORDER};color:{TEXT};">Coverage</th>
+                  <th style="text-align:left;padding:0.65rem;border-bottom:1px solid {BORDER};color:{TEXT};">Observed behavior</th>
+                  <th style="text-align:left;padding:0.65rem;border-bottom:1px solid {BORDER};color:{TEXT};">Implication</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{TEXT};">OSHA / compliance procedures</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};"><span style="background:{GREEN};color:white;padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;">Strong</span></td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Usually routes HIGH with clear citations</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Safe demo path for trust and correctness</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{TEXT};">Versioned equipment manuals</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};"><span style="background:{AMBER};color:white;padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;">Mixed</span></td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Can route PARTIAL when manuals disagree</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Conflict surfacing is a feature, not a bug</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{TEXT};">Out-of-corpus model numbers</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};"><span style="background:{RED};color:white;padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;">Weak</span></td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Should route LOW and skip the LLM</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">This is the main hallucination-control boundary</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{TEXT};">Zone-specific drone anomalies</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};"><span style="background:#0e7490;color:white;padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;">Emerging</span></td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Depends on classifier accuracy and spatial metadata quality</td>
+                  <td style="padding:0.7rem;border-bottom:1px solid {BORDER};color:{MUTED};">Main Phase 2 leverage point</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.7rem;color:{TEXT};">Follow-up questions with omitted context</td>
+                  <td style="padding:0.7rem;"><span style="background:#4338ca;color:white;padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;">Contextual</span></td>
+                  <td style="padding:0.7rem;color:{MUTED};">Resolved by session memory when prior zone/time exists</td>
+                  <td style="padding:0.7rem;color:{MUTED};">Good evidence that the system is stateful, not stateless chat</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    kg1, kg2, kg3 = st.columns(3)
+
+    with kg1:
+        st.markdown(
+            f"""
+            <div style="background:{GREEN_BG};border:1px solid {GREEN_BORDER};border-radius:10px;padding:1rem;height:100%;">
+              <p style="color:{GREEN};font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 0.35rem 0;">
+                What is covered
+              </p>
+              <p style="color:{TEXT};font-size:0.84rem;line-height:1.55;margin:0;">
+                Known OSHA procedures, common equipment procedures, and indexed inspection records
+                should produce grounded answers with traceable provenance.
+              </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with kg2:
+        st.markdown(
+            f"""
+            <div style="background:{AMBER_BG};border:1px solid {AMBER_BORDER};border-radius:10px;padding:1rem;height:100%;">
+              <p style="color:{AMBER};font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 0.35rem 0;">
+                What is contested
+              </p>
+              <p style="color:{TEXT};font-size:0.84rem;line-height:1.55;margin:0;">
+                Version drift, stale manuals, and cross-collection contradictions should remain visible as PARTIAL,
+                not be averaged into false confidence.
+              </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with kg3:
+        st.markdown(
+            f"""
+            <div style="background:{RED_BG};border:1px solid {RED_BORDER};border-radius:10px;padding:1rem;height:100%;">
+              <p style="color:{RED};font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 0.35rem 0;">
+                What is missing
+              </p>
+              <p style="color:{TEXT};font-size:0.84rem;line-height:1.55;margin:0;">
+                Unsupported manufacturers, unseen model numbers, and zones with no history should trigger deterministic escalation.
+                Those gaps are product roadmap inputs.
+              </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div style="background:{SECONDARY};border:1px solid {BORDER};border-radius:8px;padding:1rem 1.2rem;">
+          <p style="color:{TEXT};font-size:0.9rem;font-weight:600;margin:0 0 0.3rem 0;">
+            The walkthrough now ends with two operational lenses:
+          </p>
+          <p style="color:{MUTED};font-size:0.82rem;line-height:1.55;margin:0;">
+            <strong>Site map</strong> explains spatial awareness in the drone workflow.
+            <strong>Knowledge gap map</strong> explains confidence boundaries in both HVAC and drone retrieval.
+            Together they make the demo read like a product system, not just a chatbot screen.
+          </p>
         </div>
         """,
         unsafe_allow_html=True,

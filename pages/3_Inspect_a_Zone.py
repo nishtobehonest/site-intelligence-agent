@@ -1,19 +1,23 @@
 """
-pages/2_Drone_Agent.py
------------------------
+pages/3_Inspect_a_Zone.py
+-------------------------
 Drone Site Intelligence Agent — multi-agent pipeline with session memory.
 """
 
 import streamlit as st
 from src.assistant import SiteIntelligenceAgent
 from src.session_memory import SessionMemory
-from pages.shared import confidence_badge_html, render_escalation_warning, render_source_expander, render_why_it_matters
+from src.ui.shared import (
+    confidence_badge_html,
+    render_escalation_warning,
+    render_next_step,
+    render_source_expander,
+    render_walkthrough_banner,
+    render_walkthrough_progress,
+    render_why_it_matters,
+)
 
-st.set_page_config(page_title="Drone Agent", page_icon="🚁", layout="wide")
-
-# ---------------------------------------------------------------------------
-# Preset queries
-# ---------------------------------------------------------------------------
+st.set_page_config(page_title="Inspect a Zone", page_icon="🚁", layout="wide")
 
 PRESETS = [
     {
@@ -34,34 +38,35 @@ PRESETS = [
     },
 ]
 
-# ---------------------------------------------------------------------------
-# Load agent (cached per server session)
-# ---------------------------------------------------------------------------
 
 @st.cache_resource(show_spinner="Loading drone inspection knowledge base...")
 def load_agent():
     return SiteIntelligenceAgent()
 
-# ---------------------------------------------------------------------------
-# Session memory — one instance per browser tab
-# ---------------------------------------------------------------------------
 
 if "drone_memory" not in st.session_state:
     st.session_state["drone_memory"] = SessionMemory()
 
+if st.session_state.get("walkthrough_arrived_from_zone") and st.session_state.get("walkthrough_zone_query"):
+    st.session_state["drone_query"] = st.session_state["walkthrough_zone_query"]
+elif st.session_state.get("walkthrough_zone_query") and "drone_query" not in st.session_state:
+    st.session_state["drone_query"] = st.session_state["walkthrough_zone_query"]
+
 memory: SessionMemory = st.session_state["drone_memory"]
 
-# ---------------------------------------------------------------------------
-# Header
-# ---------------------------------------------------------------------------
+render_walkthrough_progress(3)
 
-st.title("🚁 Drone Site Intelligence Agent")
-st.caption("Phase 2 · Classifier agent + spatial filters + session memory")
-st.markdown("---")
+st.title("🚁 Inspect a Zone")
+st.caption("Step 3 · Classifier agent + spatial filters + session memory")
+render_walkthrough_banner(
+    3,
+    "You're headed to Zone C.",
+    "The system searches inspection records, baselines, and compliance docs, then decides if it is confident enough to answer.",
+)
 
-# ---------------------------------------------------------------------------
-# Sidebar — session memory display
-# ---------------------------------------------------------------------------
+if st.session_state.get("walkthrough_arrived_from_zone"):
+    st.success("The map already knew where you were headed. Your query was pre-loaded from the zone you selected.")
+    st.session_state["walkthrough_arrived_from_zone"] = False
 
 with st.sidebar:
     st.markdown("### Session memory")
@@ -77,10 +82,6 @@ with st.sidebar:
     st.markdown("---")
     render_why_it_matters("drone")
 
-# ---------------------------------------------------------------------------
-# Preset buttons
-# ---------------------------------------------------------------------------
-
 st.markdown("**Quick demos:**")
 btn_cols = st.columns(4)
 for i, preset in enumerate(PRESETS):
@@ -88,10 +89,6 @@ for i, preset in enumerate(PRESETS):
         st.session_state["drone_query"] = preset["query"]
 
 st.markdown("")
-
-# ---------------------------------------------------------------------------
-# Layout: input left, classification middle, answer right
-# ---------------------------------------------------------------------------
 
 col_in, col_mid, col_out = st.columns([2, 2, 3])
 
@@ -158,3 +155,9 @@ elif not submit:
     with col_out:
         st.markdown("### Answer")
         st.markdown("*Results will appear here after you submit a query.*")
+
+render_next_step(
+    "pages/4_See_the_Proof.py",
+    "Next: See the Proof →",
+    "How do we know this system actually works?",
+)

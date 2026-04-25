@@ -22,6 +22,14 @@ The core design question: **what happens when the retrieved context is incomplet
 
 ---
 
+## Walkthrough Onboarding Plan
+
+The planned Streamlit experience is a linear, persona-driven walkthrough: a field technician starts at a cinematic scenario screen, tests all three routing paths, investigates Zone C, reviews evaluation evidence, studies the system's "Honesty Report", and ends at the memory graph with a summary card.
+
+See [Docs/Walkthrough_Onboarding_Plan.md](Docs/Walkthrough_Onboarding_Plan.md) for the full onboarding flow, page-by-page copy, differentiating moments, and verification checklist.
+
+---
+
 ## Setup
 
 ```bash
@@ -41,7 +49,7 @@ python src/ingest.py
 python src/generate_synthetic.py --count 50
 
 # Launch browser demo (Streamlit UI)
-streamlit run app.py
+streamlit run Home.py
 
 # Run CLI demo with three preset queries (HIGH / PARTIAL / LOW)
 python demo/demo.py
@@ -50,7 +58,7 @@ python demo/demo.py
 python eval/run_eval.py
 ```
 
-The Streamlit UI (`app.py`) provides a browser interface with color-coded confidence badges (green / amber / red), three preset query buttons, inline source citations, and escalation warnings for LOW-confidence routes.
+The Streamlit UI (`Home.py`) provides a browser interface with color-coded confidence badges (green / amber / red), three preset query buttons, inline source citations, and escalation warnings for LOW-confidence routes.
 
 ---
 
