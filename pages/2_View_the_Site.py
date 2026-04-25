@@ -10,6 +10,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
+from textwrap import dedent
 
 import streamlit as st
 from src.ui.shared import render_next_step, render_walkthrough_banner, render_walkthrough_progress
@@ -99,7 +100,7 @@ def render_site_map(summaries: list[dict]) -> None:
         border = "3px solid #1A1A2E" if selected else "2px solid white"
         shadow = "0 0 0 5px rgba(26,26,46,0.14)" if selected else "0 10px 24px rgba(15,23,42,0.14)"
         markers.append(
-            f"""
+            dedent(f"""
             <div class="site-marker" style="left:{x:.2f}%;top:{y:.2f}%;
                         background:{bg};border:{border};box-shadow:{shadow};">
               <div style="display:flex;align-items:center;gap:0.45rem;">
@@ -111,61 +112,61 @@ def render_site_map(summaries: list[dict]) -> None:
                 {summary["severity"]} · {summary["records"]} records
               </div>
             </div>
-            """
+            """)
         )
 
     st.markdown(
-        f"""
+        dedent(f"""
         <style>
-          .site-map {{
-            position: relative;
-            min-height: 520px;
-            border: 1px solid #CBD5E1;
-            border-radius: 12px;
-            overflow: hidden;
-            background:
-              linear-gradient(90deg, rgba(148,163,184,0.26) 1px, transparent 1px),
-              linear-gradient(rgba(148,163,184,0.26) 1px, transparent 1px),
-              radial-gradient(circle at 18% 22%, rgba(20,184,166,0.22), transparent 18%),
-              radial-gradient(circle at 78% 74%, rgba(14,165,233,0.18), transparent 22%),
-              #F8FAFC;
-            background-size: 48px 48px, 48px 48px, auto, auto, auto;
-          }}
-          .site-map::before {{
-            content: "";
-            position: absolute;
-            inset: 54px 72px;
-            border: 2px dashed rgba(71,85,105,0.24);
-            border-radius: 38px;
-            transform: rotate(-8deg);
-          }}
-          .site-map::after {{
-            content: "Inspection site coordinate view";
-            position: absolute;
-            left: 1rem;
-            bottom: 0.85rem;
-            color: #64748B;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-          }}
-          .site-marker {{
-            position: absolute;
-            transform: translate(-50%, -50%);
-            min-width: 148px;
-            border-radius: 8px;
-            padding: 0.7rem 0.8rem;
-            color: #1A1A2E;
-          }}
-          .map-legend {{
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.7rem;
-            margin-top: 0.65rem;
-            color: #4B5563;
-            font-size: 0.86rem;
-          }}
+        .site-map {{
+          position: relative;
+          min-height: 520px;
+          border: 1px solid #CBD5E1;
+          border-radius: 12px;
+          overflow: hidden;
+          background:
+            linear-gradient(90deg, rgba(148,163,184,0.26) 1px, transparent 1px),
+            linear-gradient(rgba(148,163,184,0.26) 1px, transparent 1px),
+            radial-gradient(circle at 18% 22%, rgba(20,184,166,0.22), transparent 18%),
+            radial-gradient(circle at 78% 74%, rgba(14,165,233,0.18), transparent 22%),
+            #F8FAFC;
+          background-size: 48px 48px, 48px 48px, auto, auto, auto;
+        }}
+        .site-map::before {{
+          content: "";
+          position: absolute;
+          inset: 54px 72px;
+          border: 2px dashed rgba(71,85,105,0.24);
+          border-radius: 38px;
+          transform: rotate(-8deg);
+        }}
+        .site-map::after {{
+          content: "Inspection site coordinate view";
+          position: absolute;
+          left: 1rem;
+          bottom: 0.85rem;
+          color: #64748B;
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }}
+        .site-marker {{
+          position: absolute;
+          transform: translate(-50%, -50%);
+          min-width: 148px;
+          border-radius: 8px;
+          padding: 0.7rem 0.8rem;
+          color: #1A1A2E;
+        }}
+        .map-legend {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.7rem;
+          margin-top: 0.65rem;
+          color: #4B5563;
+          font-size: 0.86rem;
+        }}
         </style>
         <div class="site-map">
           {''.join(markers)}
@@ -176,7 +177,7 @@ def render_site_map(summaries: list[dict]) -> None:
           <span>Amber = MEDIUM</span>
           <span>Green = LOW</span>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
@@ -214,7 +215,7 @@ else:
             counts = summary["counts"]
             border = "3px solid #1A1A2E" if summary["zone"] == "Zone-C" else f"1.5px solid {color}"
             st.markdown(
-                f"""
+                dedent(f"""
                 <div style="background:{bg};border:{border};border-radius:8px;padding:0.7rem 0.85rem;
                             margin-bottom:0.65rem;">
                   <div style="display:flex;justify-content:space-between;gap:0.8rem;align-items:flex-start;">
@@ -226,7 +227,7 @@ else:
                     HIGH: {counts.get("HIGH", 0)} · MEDIUM: {counts.get("MEDIUM", 0)} · LOW: {counts.get("LOW", 0)}
                   </p>
                 </div>
-                """,
+                """),
                 unsafe_allow_html=True,
             )
 
@@ -245,7 +246,7 @@ else:
         severity = latest["severity"]
         color, bg = SEVERITY_COLORS[severity]
         st.markdown(
-            f"""
+            dedent(f"""
             <div style="background:{bg};border:1.5px solid {color};border-radius:8px;padding:1rem;margin-top:0.6rem;">
               <p style="margin:0 0 0.35rem 0;color:#6B7280;font-size:0.75rem;font-weight:800;
                         letter-spacing:0.08em;text-transform:uppercase;">Latest Zone C finding</p>
@@ -255,8 +256,7 @@ else:
                 {latest["inspector_notes"][:520]}...
               </p>
             </div>
-            """
-            ,
+            """),
             unsafe_allow_html=True,
         )
 
