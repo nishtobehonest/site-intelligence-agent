@@ -13,6 +13,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import streamlit as st
+import streamlit.components.v1 as components
 from src.ui.shared import render_next_step, render_walkthrough_banner, render_walkthrough_progress
 
 st.set_page_config(page_title="View the Site", page_icon="🗺️", layout="wide")
@@ -78,6 +79,19 @@ def zone_summary(zone: str, zone_records: list[dict]) -> dict:
     }
 
 
+def site_zone_summaries(all_records: list[dict]) -> list[dict]:
+    by_site_zone: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for record in all_records:
+        by_site_zone[(record["site_id"], record["zone_id"])].append(record)
+
+    summaries = []
+    for (site_id, zone), site_zone_records in sorted(by_site_zone.items()):
+        summary = zone_summary(zone, site_zone_records)
+        summary["site_id"] = site_id
+        summaries.append(summary)
+    return summaries
+
+
 def marker_position(summary: dict, lat_min: float, lat_max: float, lon_min: float, lon_max: float) -> tuple[float, float]:
     lat_span = max(lat_max - lat_min, 0.0001)
     lon_span = max(lon_max - lon_min, 0.0001)
@@ -109,15 +123,19 @@ def render_site_map(summaries: list[dict]) -> None:
                 <strong>{summary["zone"]}</strong>
               </div>
               <div style="font-size:0.78rem;color:#4B5563;margin-top:0.15rem;">
-                {summary["severity"]} · {summary["records"]} records
+                {summary["site_id"]}<br>{summary["severity"]} · {summary["records"]} records
               </div>
             </div>
             """)
         )
 
-    st.markdown(
+    components.html(
         dedent(f"""
         <style>
+        body {{
+          margin: 0;
+          font-family: "Source Sans Pro", sans-serif;
+        }}
         .site-map {{
           position: relative;
           min-height: 520px;
@@ -172,13 +190,13 @@ def render_site_map(summaries: list[dict]) -> None:
           {''.join(markers)}
         </div>
         <div class="map-legend">
-          <span><strong>Map basis:</strong> zone coordinates from inspection records</span>
+          <span><strong>Map basis:</strong> site-zone coordinates from inspection records</span>
           <span>Red = HIGH</span>
           <span>Amber = MEDIUM</span>
           <span>Green = LOW</span>
         </div>
         """),
-        unsafe_allow_html=True,
+        height=590,
     )
 
 
@@ -202,10 +220,11 @@ if not records:
 else:
     zones = sorted(by_zone)
     summaries = [zone_summary(zone, by_zone[zone]) for zone in zones]
+    map_summaries = site_zone_summaries(records)
 
     map_col, detail_col = st.columns([2.1, 1])
     with map_col:
-        render_site_map(summaries)
+        render_site_map(map_summaries)
 
     with detail_col:
         st.subheader("Zone risk rollup")
