@@ -12,8 +12,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from textwrap import dedent
 
+import plotly.graph_objects as go
 import streamlit as st
-import streamlit.components.v1 as components
 from src.ui.shared import render_next_step, render_walkthrough_banner, render_walkthrough_progress
 
 st.set_page_config(page_title="View the Site", page_icon="🗺️", layout="wide")
@@ -25,11 +25,8 @@ SEVERITY_COLORS = {
     "MEDIUM": ("#b45309", "#fffbeb"),
     "LOW": ("#15803d", "#f0fdf4"),
 }
-MAP_COLORS = {
-    "HIGH": ("#dc2626", "#fef2f2"),
-    "MEDIUM": ("#d97706", "#fffbeb"),
-    "LOW": ("#16a34a", "#f0fdf4"),
-}
+SEV_MARKER_COLORS = {"HIGH": "#dc2626", "MEDIUM": "#d97706", "LOW": "#16a34a"}
+SEV_MARKER_SIZES  = {"HIGH": 22, "MEDIUM": 18, "LOW": 16}
 
 
 @st.cache_data
@@ -50,7 +47,6 @@ def parse_coordinates(value: str) -> tuple[float, float] | None:
     match = re.search(r"([\d.]+)°\s*([NS]),\s*([\d.]+)°\s*([EW])", value or "")
     if not match:
         return None
-
     lat = float(match.group(1)) * (-1 if match.group(2) == "S" else 1)
     lon = float(match.group(3)) * (-1 if match.group(4) == "W" else 1)
     return lat, lon
@@ -92,160 +88,73 @@ def site_zone_summaries(all_records: list[dict]) -> list[dict]:
     return summaries
 
 
-def marker_position(summary: dict, site_layout: dict[str, dict]) -> tuple[float, float]:
-    """
-    Position zones by site first, then fan out each site's zones.
+def render_site_map_interactive(summaries: list[dict]) -> str | None:
+    """Render an interactive Plotly mapbox map. Returns the clicked zone name or None."""
+    fig = go.Figure()
 
-    The synthetic records use real city coordinates, so Austin and Denver are
-    hundreds of miles apart while zones within one site differ by only a few
-    decimal places. A direct lat/lon projection collapses each site's zones
-    into a single stack. This keeps the coordinate-derived site ordering while
-    giving every zone a stable, visible slot inside its site cluster.
-    """
-    layout = site_layout[summary["site_id"]]
-    zone_count = max(layout["zone_count"], 1)
-    zone_index = layout["zone_order"].get(summary["zone"], 0)
-    spread = min(46, 18 * max(zone_count - 1, 0))
-    zone_offset = 0 if zone_count == 1 else -spread / 2 + (spread * zone_index / (zone_count - 1))
-    return layout["x"], layout["y"] + zone_offset
+    for sev in ["HIGH", "MEDIUM", "LOW"]:
+        rows = [s for s in summaries if s["severity"] == sev]
+        if not rows:
+            continue
+        fig.add_trace(go.Scattermapbox(
+            lat=[s["lat"] for s in rows],
+            lon=[s["lon"] for s in rows],
+            mode="markers",
+            marker=dict(
+                size=SEV_MARKER_SIZES[sev],
+                color=SEV_MARKER_COLORS[sev],
+            ),
+            hovertemplate=(
+                "<b>%{customdata[0]}</b>  ·  %{customdata[1]}<br>"
+                "Severity: <b>%{customdata[2]}</b><br>"
+                "Records: %{customdata[3]}<br>"
+                "HIGH: %{customdata[4]}  MED: %{customdata[5]}  LOW: %{customdata[6]}"
+                "<extra></extra>"
+            ),
+            customdata=[
+                [
+                    s["zone"], s["site_id"], s["severity"],
+                    s["records"],
+                    s["counts"].get("HIGH", 0),
+                    s["counts"].get("MEDIUM", 0),
+                    s["counts"].get("LOW", 0),
+                ]
+                for s in rows
+            ],
+            name=sev,
+            selected=dict(marker=dict(size=30)),
+            unselected=dict(marker=dict(opacity=0.45)),
+        ))
 
-
-def build_site_layout(summaries: list[dict]) -> dict[str, dict]:
-    sites: dict[str, dict] = {}
-    for summary in summaries:
-        site = sites.setdefault(summary["site_id"], {"lats": [], "lons": [], "zones": set()})
-        site["lats"].append(summary["lat"])
-        site["lons"].append(summary["lon"])
-        site["zones"].add(summary["zone"])
-
-    site_points = []
-    for site_id, site in sites.items():
-        site_points.append(
-            {
-                "site_id": site_id,
-                "lat": sum(site["lats"]) / len(site["lats"]),
-                "lon": sum(site["lons"]) / len(site["lons"]),
-                "zones": sorted(site["zones"]),
-            }
-        )
-
-    lat_values = [site["lat"] for site in site_points]
-    lon_values = [site["lon"] for site in site_points]
-    lat_min, lat_max = min(lat_values), max(lat_values)
-    lon_min, lon_max = min(lon_values), max(lon_values)
-    lat_span = max(lat_max - lat_min, 0.0001)
-    lon_span = max(lon_max - lon_min, 0.0001)
-
-    layout = {}
-    for site in site_points:
-        x = 22 + ((site["lon"] - lon_min) / lon_span) * 56
-        y = 72 - ((site["lat"] - lat_min) / lat_span) * 44
-        layout[site["site_id"]] = {
-            "x": x,
-            "y": y,
-            "zone_count": len(site["zones"]),
-            "zone_order": {zone: index for index, zone in enumerate(site["zones"])},
-        }
-    return layout
-
-
-def render_site_map(summaries: list[dict]) -> None:
-    site_layout = build_site_layout(summaries)
-    markers = []
-    for summary in summaries:
-        color, bg = MAP_COLORS[summary["severity"]]
-        x, y = marker_position(summary, site_layout)
-        selected = summary["zone"] == "Zone-C"
-        border = "3px solid #1A1A2E" if selected else "2px solid white"
-        shadow = "0 0 0 5px rgba(26,26,46,0.14)" if selected else "0 10px 24px rgba(15,23,42,0.14)"
-        markers.append(
-            dedent(f"""
-            <div class="site-marker" style="--x:{x:.2f}%;--y:{y:.2f}%;
-                        background:{bg};border:{border};box-shadow:{shadow};">
-              <div style="display:flex;align-items:center;gap:0.45rem;">
-                <span style="width:0.72rem;height:0.72rem;border-radius:999px;background:{color};
-                             display:inline-block;"></span>
-                <strong>{summary["zone"]}</strong>
-              </div>
-              <div style="font-size:0.78rem;color:#4B5563;margin-top:0.15rem;">
-                {summary["site_id"]}<br>{summary["severity"]} · {summary["records"]} records
-              </div>
-            </div>
-            """)
-        )
-
-    components.html(
-        dedent(f"""
-        <style>
-        body {{
-          margin: 0;
-          font-family: "Source Sans Pro", sans-serif;
-        }}
-        .site-map {{
-          position: relative;
-          min-height: 520px;
-          border: 1px solid #CBD5E1;
-          border-radius: 12px;
-          overflow: hidden;
-          background:
-            linear-gradient(90deg, rgba(148,163,184,0.26) 1px, transparent 1px),
-            linear-gradient(rgba(148,163,184,0.26) 1px, transparent 1px),
-            radial-gradient(circle at 18% 22%, rgba(20,184,166,0.22), transparent 18%),
-            radial-gradient(circle at 78% 74%, rgba(14,165,233,0.18), transparent 22%),
-            #F8FAFC;
-          background-size: 48px 48px, 48px 48px, auto, auto, auto;
-        }}
-        .site-map::before {{
-          content: "";
-          position: absolute;
-          inset: 54px 72px;
-          border: 2px dashed rgba(71,85,105,0.24);
-          border-radius: 38px;
-          transform: rotate(-8deg);
-        }}
-        .site-map::after {{
-          content: "Inspection site coordinate view";
-          position: absolute;
-          left: 1rem;
-          bottom: 0.85rem;
-          color: #64748B;
-          font-size: 0.78rem;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-        }}
-        .site-marker {{
-          position: absolute;
-          left: clamp(0.75rem, calc(var(--x) - 5.5rem), calc(100% - 11.75rem));
-          top: clamp(0.75rem, calc(var(--y) - 2.4rem), calc(100% - 5.9rem));
-          width: 11rem;
-          box-sizing: border-box;
-          border-radius: 8px;
-          padding: 0.7rem 0.8rem;
-          color: #1A1A2E;
-          z-index: 1;
-        }}
-        .map-legend {{
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.7rem;
-          margin-top: 0.65rem;
-          color: #4B5563;
-          font-size: 0.86rem;
-        }}
-        </style>
-        <div class="site-map">
-          {''.join(markers)}
-        </div>
-        <div class="map-legend">
-          <span><strong>Map basis:</strong> site-zone coordinates from inspection records</span>
-          <span>Red = HIGH</span>
-          <span>Amber = MEDIUM</span>
-          <span>Green = LOW</span>
-        </div>
-        """),
-        height=590,
+    lats = [s["lat"] for s in summaries]
+    lons = [s["lon"] for s in summaries]
+    fig.update_layout(
+        mapbox=dict(
+            style="open-street-map",
+            center=dict(lat=sum(lats) / len(lats), lon=sum(lons) / len(lons)),
+            zoom=5,
+        ),
+        margin=dict(l=0, r=0, t=0, b=0),
+        height=520,
+        legend=dict(
+            title=dict(text="Severity"),
+            bgcolor="rgba(255,255,255,0.88)",
+            bordercolor="#CBD5E1",
+            borderwidth=1,
+        ),
+        clickmode="event+select",
     )
+
+    event = st.plotly_chart(
+        fig,
+        on_select="rerun",
+        selection_mode="points",
+        use_container_width=True,
+    )
+
+    if event and event.selection and event.selection.points:
+        return event.selection.points[0]["customdata"][0]
+    return None
 
 
 records = load_records()
@@ -259,8 +168,8 @@ st.title("🗺️ View the Site")
 st.caption("Step 2 · Zoom out from one unit to the whole inspection site")
 render_walkthrough_banner(
     2,
-    "You're looking at your site.",
-    "Every zone is color-coded by the worst anomaly found there. Zone C is flagged HIGH.",
+    "🗺️ Here's your whole inspection site at a glance.",
+    "Every zone is color-coded by the worst problem found there — 🟢 all clear, 🟡 worth watching, 🔴 needs attention now. Zone C is in the red.",
 )
 
 if not records:
@@ -271,8 +180,48 @@ else:
     map_summaries = site_zone_summaries(records)
 
     map_col, detail_col = st.columns([2.1, 1])
+
     with map_col:
-        render_site_map(map_summaries)
+        selected_zone = render_site_map_interactive(map_summaries)
+
+        # Persist selection across reruns
+        if selected_zone:
+            st.session_state["map_selected_zone"] = selected_zone
+        current_selection = st.session_state.get("map_selected_zone")
+
+        if current_selection:
+            sel = next((s for s in map_summaries if s["zone"] == current_selection), None)
+            if sel:
+                color, bg = SEVERITY_COLORS[sel["severity"]]
+                st.markdown(
+                    dedent(f"""
+                    <div style="background:{bg};border:2px solid {color};border-radius:8px;
+                                padding:0.75rem 1rem;margin-top:0.5rem;">
+                      <strong style="font-size:1rem;color:#1A1A2E;">{sel["zone"]}</strong>
+                      <span style="float:right;color:{color};font-weight:800;">{sel["severity"]}</span><br>
+                      <span style="color:#4B5563;font-size:0.85rem;">
+                        {sel["site_id"]} · {sel["records"]} records ·
+                        HIGH: {sel["counts"].get("HIGH", 0)}
+                        MED: {sel["counts"].get("MEDIUM", 0)}
+                        LOW: {sel["counts"].get("LOW", 0)}
+                      </span>
+                    </div>
+                    """),
+                    unsafe_allow_html=True,
+                )
+                st.markdown("")
+                if st.button(f"Investigate {current_selection} →", type="primary", use_container_width=True):
+                    st.session_state["walkthrough_zone"] = current_selection
+                    st.session_state["walkthrough_zone_query"] = (
+                        f"What anomalies were found in {current_selection} during the last inspection?"
+                    )
+                    st.session_state["walkthrough_arrived_from_zone"] = True
+                    if hasattr(st, "switch_page"):
+                        st.switch_page("pages/3_Inspect_a_Zone.py")
+                    else:
+                        st.success(f"{current_selection} selected. Continue to Inspect a Zone from the sidebar.")
+        else:
+            st.caption("Click any zone marker to select it and investigate.")
 
     with detail_col:
         st.subheader("Zone risk rollup")

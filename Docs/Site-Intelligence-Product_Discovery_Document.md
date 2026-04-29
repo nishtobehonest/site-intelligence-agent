@@ -1,7 +1,7 @@
 # Product Discovery Document
 **Site Intelligence Agent — Social Impact Edition**
 Nishchay Vishwanath · Cornell MEM 2026
-Hackathon Theme: Economic Empowerment & Education
+Social Impact Mission: Economic Empowerment & Education · Governance & Collaboration
 
 ---
 
@@ -11,12 +11,12 @@ This is not a RAG pipeline. It is an AI that gives every junior field worker acc
 
 ---
 
-## Hackathon Theme Alignment
+## Social Impact Alignment
 
-**Lead Theme: Economic Empowerment & Education**
+**Primary: Economic Empowerment & Education**
 AI removes the knowledge barrier that keeps junior field technicians underpaid, undertrained, and exposed to preventable harm. The information they need exists — in manuals, OSHA standards, service histories — but is fragmented and inaccessible at the exact moment it matters.
 
-**Supporting Theme: Governance & Collaboration**
+**Supporting: Governance & Collaboration**
 Drone inspection intelligence makes infrastructure safety analysis accessible to under-resourced municipalities that cannot afford expert human review teams.
 
 *Machines of Loving Grace* framing: This is exactly the use case Dario Amodei described — AI augmenting capability for the people who build and maintain the physical world, not replacing them. Every field worker, regardless of experience or employer resources, deserves access to the knowledge that keeps them safe and effective.
@@ -38,7 +38,7 @@ This is not a technology problem. It is an inequality problem. Large, well-resou
 - **20 million** field service technicians operating globally across electrical, plumbing, telecom, infrastructure, and facilities management [2]
 - OSHA estimates proper lockout/tagout compliance alone prevents **120 deaths and 50,000 injuries per year** — and approximately **3 million U.S. workers** regularly service equipment that exposes them to hazardous energy [3]
 - The industry-wide first-time fix rate averages **77–80%**; organizations below 70% face documented adverse effects on customer retention, SLA compliance, and asset uptime — meaning 1 in 5 service calls requires at least one return trip [4]
-- Knowledge workers spend an average of **1.8 hours per day** — nearly a quarter of the workweek — searching and gathering information (McKinsey Global Institute, 2012); for field technicians without mobile-accessible knowledge systems, the impact is compounded by connectivity constraints and time pressure [5]
+- Knowledge workers spend an average of **1.8 hours per day** — nearly a quarter of the workweek — searching and gathering information (McKinsey Global Institute, 2012); while this figure covers office workers, field technicians face the same fragmentation problem with additional constraints: no desk, limited connectivity, and a 30-minute job clock [5]
 
 ### Why Existing Solutions Fail
 
@@ -76,6 +76,9 @@ Each job starts with a work order. On arrival, they must identify the exact equi
 - **Blame for system failures:** Mistakes caused by missing information are attributed to technician error, not knowledge-system failure — wage and career consequences fall on the worker
 - **Repeat truck rolls:** Industry first-time fix rates average 77–80%, with companies below 70% facing documented increases in repeat visits and customer churn [4]
 
+**How this user accesses the system:**
+A mobile browser on a smartphone or tablet — no app install required. The Streamlit interface is designed for one-handed use in the field. Offline mode (cached responses for previously-queried equipment and sites) is a Phase 3 target; current deployment assumes minimal connectivity sufficient for a web request.
+
 **Why standard AI fails this user:**
 A junior tech can't Google "how do I service THIS Carrier RTU at THIS building today?" — the answer requires pulling from the Carrier service manual, the building's maintenance history, the relevant OSHA standards, and the site's prior service records simultaneously, and synthesizing them into a single actionable response.
 
@@ -101,7 +104,7 @@ Operations VP or service director at a mid-size HVAC, electrical, or facilities 
 - Cannot have a senior tech supervising every junior worker on every job
 
 **Value Proposition (Quantified):**
-Each unnecessary return visit costs $150–$500 in direct labor and transportation costs, with fully-loaded costs (overtime, SLA penalties, customer attrition) reaching $800–$1,000 per incident [8]. If the tool saves each technician 30 minutes per day in information lookup time — consistent with the McKinsey finding that knowledge access tools cut search time by up to 35% [5] — and improves first-time fix rates by 5 percentage points, a 200-technician organization avoids an estimated $1.5M annually in combined labor waste and return-visit costs. *(Derived estimate based on median HVAC technician wage of $59,810/year [1] and industry truck roll benchmarks [8].)*
+Each unnecessary return visit costs $150–$500 in direct labor and transportation costs, with fully-loaded costs (overtime, SLA penalties, customer attrition) reaching $800–$1,000 per incident [8]. If the tool saves each technician 30 minutes per day in information lookup time — the McKinsey benchmark suggests knowledge access tools can cut search time by up to 35% [5], though that study covered office workers — and improves first-time fix rates by 5 percentage points, a 200-technician organization avoids an estimated $1.5M annually in combined labor waste and return-visit costs. *(Conservative derived estimate based on median HVAC technician wage of $59,810/year [1] and industry truck roll benchmarks [8]; field-specific validation pending operator pilots.)*
 
 ---
 
@@ -153,7 +156,7 @@ Standard RAG systems search by semantic similarity — they return documents tha
 
 ### MAGMA: Multi-Graph Agentic Memory Architecture
 
-Inspired by *MAGMA: A Multi-Graph based Agentic Memory Architecture for AI Agents* (Jiang, Li, Li, Li; arXiv:2601.03236v1 [cs.AI], January 2026) [10], the system represents field service memory as four orthogonal relation graphs:
+Inspired by *MAGMA: A Multi-Graph based Agentic Memory Architecture for AI Agents* (Jiang, Li, Li, Li; arXiv:2601.03236v1 [cs.AI], January 2026) [10], the target architecture represents field service memory as four orthogonal relation graphs:
 
 | Graph | Edge type | Query type it answers |
 |---|---|---|
@@ -163,6 +166,8 @@ Inspired by *MAGMA: A Multi-Graph based Agentic Memory Architecture for AI Agent
 | **Semantic Graph** | Conceptually similar events (similar anomaly types across zones) | WHAT — "What anomaly types commonly co-occur?" |
 
 **Query routing:** An intent-aware classifier detects query type (WHY / WHEN / WHO / WHAT) and routes retrieval to the appropriate graph via Adaptive Traversal Policy — a Heuristic Beam Search calibrated to the detected intent. This achieves a 0.700 overall accuracy score on the LoCo-Mo benchmark, vs. 0.481 for full-context baseline and 0.590 for the next best system (Nemori) [10].
+
+**Current implementation vs. Phase 3 target:** The current system implements the graceful degradation and intent-routing principles that MAGMA extends — RAG with confidence scoring, domain-aware classifier, and spatial filters. The full multi-graph backend (temporal/causal/entity/semantic graph construction and traversal) is the Phase 3 production target. The Memory Graph visualization demonstrates the architecture with structured data derived from the existing corpus.
 
 **Why this matters for social impact:** A junior technician asking "WHY does this zone keep failing?" deserves a causal answer — the maintenance chain that was missed, the equipment history that explains the pattern — not a semantic similarity match that returns other records mentioning "zone failure." Structured relational memory is the difference between a search engine and a reasoning system.
 
@@ -191,7 +196,7 @@ The knowledge gap between a 22-year-old junior tech and a 20-year veteran is rea
 OSHA estimates that proper lockout/tagout compliance prevents 120 deaths and 50,000 injuries annually [3] — meaning these incidents are preventable in aggregate, but the risk is distributed unequally. Workers at under-resourced companies, without mobile access to the right documentation at the right moment, bear a disproportionate share of that risk. The anti-hallucination design is a safety equity intervention: the system escalates when uncertain rather than returning a confident wrong answer.
 
 ### Infrastructure Governance
-The quality of public infrastructure monitoring should not depend on the size of the municipal budget. The global drone inspection market is projected to reach $74 billion by 2035 [9], but the intelligence layer that converts raw flight data into actionable decisions remains expensive and expert-dependent. AI-powered inspection intelligence makes that layer accessible to municipalities that cannot pay enterprise prices for human expert teams.
+The quality of public infrastructure monitoring should not depend on the size of the municipal budget. The global drone inspection market is projected to reach $74 billion by 2035 [9], but the intelligence layer that converts raw flight data into actionable decisions remains expensive and expert-dependent. The same graceful degradation principle that protects a junior HVAC tech from a confident wrong answer also protects a city engineer from acting on a misread anomaly: the system surfaces conflicts and escalates uncertainty rather than producing false confidence. AI-powered inspection intelligence makes that layer accessible to municipalities that cannot pay enterprise prices for human expert teams.
 
 ---
 
@@ -200,6 +205,8 @@ The quality of public infrastructure monitoring should not depend on the size of
 | Alternative | What They Do | Where They Fall Short |
 |---|---|---|
 | ServiceMax | Enterprise FSM — asset management, work orders, scheduling | Custom enterprise pricing; requires Salesforce; not recommended for fewer than 50 technicians; not designed for the technician in the field [6] |
+| UpKeep | Mobile-first CMMS for smaller maintenance teams; widely adopted by small shops | Asset/work-order management, not multi-source knowledge retrieval; no confidence routing or conflict detection |
+| Guru / Tettra | Team knowledge bases with mobile access | General-purpose wikis — not structured around site-specific, model-specific field queries; no graceful degradation |
 | Google / generic search | General information retrieval | Cannot synthesize multi-source, model-specific, site-specific answers |
 | Standard RAG chatbots | Semantic similarity retrieval | Miss temporal, causal, and entity reasoning; hallucinate when uncertain |
 | Manufacturer support lines | Equipment-specific technical support | Not 24/7; doesn't know the site's service history |
@@ -215,34 +222,47 @@ The quality of public infrastructure monitoring should not depend on the size of
 ## Dashboard & Visualization Design
 
 ### 1. Impact Counter (Home Page)
-Human-readable numbers, not system metrics:
-- "Hours saved this month: 847" *(30 min/day × active technicians × working days)*
-- "Safety escalations that avoided a hallucination: 23" *(LOW-path routing count)*
-- "First-time fixes enabled: 142" *(HIGH-confidence responses to diagnosis queries)*
+Human-readable numbers, not system metrics. For the demo, projected figures are calculated from eval-suite runs and stated assumptions — clearly labeled as such:
+- "Projected hours saved (100 technicians/month): 847" *(30 min/day × technicians × working days)*
+- "Safety escalations in this demo session: 23" *(live LOW-path routing count from actual queries)*
+- "Confident answers with cited source: 142" *(HIGH-confidence responses from eval suite)*
+
+Labeling projected vs. observed matters — interviewers and reviewers will ask. Live counters (escalations, HIGH responses) update in real time during the demo; projected figures are clearly marked as model estimates.
 
 Every escalation is a hallucination that didn't happen to a worker in the field.
 
-### 2. Memory Graph (MAGMA Visualization — `pages/5_Memory_Graph.py`)
+### 2. Memory Graph (MAGMA Visualization — `pages/6_Connect_the_Dots.py`) ✅ Complete
 The centerpiece wow factor. Interactive PyVis graph showing the 4 relational dimensions of inspection memory:
 - Nodes = inspection events (HVAC service records or drone anomaly detections)
-- Edges = typed relationships (temporal / causal / semantic / entity)
+- Edges = typed relationships (temporal / causal / semantic / entity) — constructed from existing Chroma corpus, not a live graph backend
 - Query traversal animation: watch the agent navigate the graph to answer a WHY, WHEN, WHO, or WHAT query
 - Domain switcher: HVAC service history ↔ Drone inspection records
 - Inspired by: Jiang et al., "MAGMA: A Multi-Graph based Agentic Memory Architecture for AI Agents," arXiv:2601.03236, 2026 [10]
 
+*Note: This page is the centerpiece demo feature for the v1 release. The full graph backend (dynamic edge construction, Adaptive Traversal Policy) is Phase 3.*
+
 ### 3. Pipeline Trace Panel (Agent Pages)
 Step-by-step visualization of a query moving through the pipeline:
 ```
-[1] CLASSIFY    → ANOMALY_QUERY / WHY intent  (14ms)
-[2] GRAPH ROUTE → Causal graph (WHY queries bias toward causal edges)
-[3] RETRIEVE    → 7 results, spatial filter: Zone C
-[4] SCORE       → top score: 0.91, no conflicts
-[5] ROUTE       → HIGH → calling LLM
-[6] ANSWER      → "3 anomalies flagged..." [inspection_rec_aug25.json]
+[1] CLASSIFY    → ANOMALY_QUERY  (rule-based fast path, ~5ms)
+[2] FILTER      → spatial filter: zone_id = Zone-C
+[3] RETRIEVE    → 7 results from inspection_records, historical_baselines
+[4] SCORE       → top score: 0.91, no conflicts → HIGH
+[5] ANSWER      → "3 anomalies flagged..." [inspection_rec_aug25.json]
 ```
 
-### 4. Knowledge Gap Map
-Zone × confidence heat map: every LOW-confidence zone is a place where a worker would have had to improvise. This is how you find the knowledge gaps before they become incidents.
+### 4. Knowledge Gap Map — The Honesty Report
+Zone × confidence heat map: every red cell is a question the system refused to answer rather than guess. Each gap is a hallucination that didn't happen. Click any red cell in the live demo to see the escalation message that fires instead of an LLM response. This is how you find knowledge gaps before they become incidents — and how you demonstrate the anti-hallucination design working under adversarial conditions.
+
+### 5. Guided Walkthrough UX
+The demo experience is a 6-step guided walkthrough from a single persona — the junior field technician. Key design decisions:
+- **Home.py:** staggered CSS fade-in on scenario lines; three inline routing pills (HIGH / PARTIAL / LOW); single "Begin Walkthrough →" CTA
+- **Session state handoff:** Zone C selection on the Site Map pre-fills the Drone Agent query; an arrival callout fires once on Step 3 to make the connection explicit
+- **Route-specific aha callouts on Step 1:** each of the three routing paths has a differentiated in-context explanation when it fires — not a generic label
+- **Dismissible walkthrough banners** and a sidebar progress tracker (past ✓ / current → / future numbered)
+- **End summary card on Step 6** with headline metrics and a "← Start over" button that clears all walkthrough session state
+
+The walkthrough is a product decision, not decoration — it ensures every reviewer reaches the LOW-path escalation and the Zone C handoff, which are the two moments that explain why this system is differentiated from a standard RAG chatbot.
 
 ---
 
@@ -263,12 +283,28 @@ Zone × confidence heat map: every LOW-confidence zone is a place where a worker
 ## Demo Narrative (5–7 Minutes)
 
 1. **Open with the story** (30 sec): "Imagine you're a 22-year-old HVAC tech on your 4th job today. You've never seen this unit before. The manual is in the truck. You have 30 minutes. OSHA tells us this exact gap — not knowing the right procedure at the right moment — causes 50,000 preventable injuries a year."
-2. **Show the impact counter** (30 sec): "This system has saved 847 hours and flagged 23 situations where a wrong answer would have mattered to someone's safety."
+2. **Show the impact counter** (30 sec): "Running on our eval suite and a projected 100-technician deployment, this system would have saved 847 hours and flagged 23 situations where a wrong answer would have mattered to someone's safety."
 3. **HIGH demo query** (90 sec): Zone C anomaly query → pipeline trace lights up → confident answer with citation and source
 4. **PARTIAL demo query** (90 sec): Baseline comparison → conflict surfaces between two inspection records → "here's what the data disagrees on — human judgment required"
 5. **LOW demo query** (60 sec): Zone X (no data) → escalation, not hallucination → "the system doesn't guess. It tells you where the knowledge gap is."
-6. **Memory Graph** (90 sec): "Here's what makes this different from a search engine. This WHY query traverses the causal graph: anomaly detected → maintenance deferred → re-flagged. That's not retrieval. That's reasoning. Inspired by the MAGMA architecture from UT Dallas."
+6. **Memory Graph** (90 sec): "Here's what makes this different from a search engine. This WHY query traverses the causal graph: anomaly detected → maintenance deferred → re-flagged. That's not retrieval. That's reasoning. Inspired by the MAGMA architecture from UT Dallas — current system demonstrates the routing principles; full graph backend is Phase 3."
 7. **Close** (30 sec): "We didn't build a search engine. We built a system that knows when NOT to answer. In field service, that distinction is the difference between a useful tool and a liability — and between a junior tech who gets hurt and one who doesn't."
+
+---
+
+## Pricing & Go-to-Market
+
+**Hypothesis:** Per-seat SaaS, priced below the training cost it replaces.
+
+| Tier | Target | Price Point | Rationale |
+|------|--------|-------------|-----------|
+| Small Shop | 10–50 technicians | $25–$40/seat/month | Below the cost of one avoidable truck roll per tech per year |
+| Mid-Market | 50–200 technicians | $20–$30/seat/month (volume) | Competes on ROI vs. training coordinator hire |
+| Municipality | Public infrastructure teams | Grant-funded / public-sector pricing | Infrastructure governance tier; FEMA, HUD, and DOT grant eligibility for safety tools |
+
+**GTM entry point:** Trade associations (ACCA for HVAC, NECA for electrical) — they have direct access to small shop owners and run continuing education programs where this tool is a natural fit. Content partnerships with certification programs (NATE, EPA 608) as a study and field-reference tool.
+
+**Land and expand:** Start with HVAC (clearest safety story, existing corpus), expand to electrical and facilities via the domain-agnostic pipeline.
 
 ---
 
@@ -278,8 +314,19 @@ Zone × confidence heat map: every LOW-confidence zone is a place where a worker
 |-------|-----------|------------------------|
 | Phase 1 (done) | RAG pipeline, confidence routing, eval framework, HVAC domain | Proves the graceful degradation model |
 | Phase 2 (current) | Drone domain, classifier, session memory, spatial filters | Dual-domain demo, infrastructure governance story |
-| Hackathon | MAGMA Memory Graph visualization, Impact Counter, Pipeline Trace | Full social impact narrative, wow-factor UX |
-| Phase 3 | Real MAGMA graph backend, live deployment, longitudinal tracking | Production-grade reasoning for safety-critical field service |
+| Demo Release (v1) | MAGMA Memory Graph ✅, Guided Walkthrough UX ✅, Pipeline Trace ✅ | Full social impact narrative, differentiated demo experience |
+| Phase 3 | Real MAGMA graph backend, offline mode, live deployment, longitudinal tracking | Production-grade reasoning; field connectivity constraint lifted |
+
+---
+
+## Risks & Mitigations
+
+| Risk | Current Mitigation | Phase 3 Target |
+|---|---|---|
+| **Field connectivity** — field workers often have limited or intermittent signal | Streamlit app is lightweight; requires only a minimal web request per query | Response caching for previously-queried equipment and sites (offline mode) |
+| **Synthetic corpus** — current demo data is generated, not production records | All data generated via Claude API from realistic field scenarios; statistically plausible and domain-accurate | Corpus ingestion pipeline from real FSM and document management systems at operator onboarding |
+| **Semantic model number blindness** — near-miss equipment can score high similarity | Known limitation; XR13 ≈ XR15 scores 0.82 similarity and may route PARTIAL instead of LOW; documented in eval suite | Hybrid retrieval: BM25 + dense, or explicit model-number metadata filter |
+| **Data freshness** — corpus is static per deployment | No live sync currently; corpus reflects the state at ingestion time | Scheduled re-ingestion from connected FSM at configurable intervals |
 
 ---
 

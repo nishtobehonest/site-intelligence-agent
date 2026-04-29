@@ -6,7 +6,9 @@
 
 ## What This Is
 
-A RAG-based assistant for frontline field workers (HVAC technicians, inspectors, field engineers) that retrieves relevant documentation, past job history, and compliance requirements in real time during a job.
+A RAG-based assistant for frontline field workers (HVAC technicians, drone inspectors, field engineers) that retrieves relevant documentation, past job history, and compliance requirements in real time during a job.
+
+The system spans two domains — **HVAC** (Phase 1, complete) and **drone inspection** (Phase 2) — handled by a dual-domain `SiteIntelligenceAgent` with a shared pipeline and domain-aware classifier, session memory, and spatial zone filtering.
 
 The core design question: **what happens when the retrieved context is incomplete or contradictory?** Most RAG systems stop at "the model found something." This system is designed for when it does not.
 
@@ -22,11 +24,19 @@ The core design question: **what happens when the retrieved context is incomplet
 
 ---
 
-## Walkthrough Onboarding Plan
+## Streamlit Walkthrough App
 
-The planned Streamlit experience is a linear, persona-driven walkthrough: a field technician starts at a cinematic scenario screen, tests all three routing paths, investigates Zone C, reviews evaluation evidence, studies the system's "Honesty Report", and ends at the memory graph with a summary card.
+A 6-page persona-driven walkthrough ships with the project (`streamlit run Home.py`):
 
-See [Docs/Walkthrough_Onboarding_Plan.md](Docs/Walkthrough_Onboarding_Plan.md) for the full onboarding flow, page-by-page copy, differentiating moments, and verification checklist.
+| Page | What it does |
+|------|--------------|
+| Home | Cinematic scenario intro with CTA |
+| 1 — Ask the Agent | Interactive demo of all three confidence paths (HIGH / PARTIAL / LOW) |
+| 2 — View the Site | Dual-domain site overview |
+| 3 — Inspect a Zone | Drone agent with Zone C pre-loaded, session memory and pipeline trace |
+| 4 — See the Proof | Eval metrics dashboard |
+| 5 — Find the Gaps | "Honesty Report" — coverage heatmap (green = answered, red = escalated) |
+| 6 — Connect the Dots | Memory graph finale and summary card |
 
 ---
 
@@ -42,33 +52,50 @@ cp .env.example .env
 
 # Add documents to data/raw/ (see Data Sources below)
 
-# Ingest documents into Chroma
+# Ingest HVAC collections (Phase 1)
 python src/ingest.py
 
-# Generate synthetic job history
-python src/generate_synthetic.py --count 50
+# Ingest drone inspection collections (Phase 2)
+python src/ingest.py --domain drone
 
-# Launch browser demo (Streamlit UI)
+# Ingest both domains
+python src/ingest.py --domain all
+
+# Generate synthetic HVAC job history
+python src/generate_synthetic.py
+
+# Generate synthetic drone inspection data
+python src/generate_drone_data.py
+
+# Launch Streamlit walkthrough app
 streamlit run Home.py
 
 # Run CLI demo with three preset queries (HIGH / PARTIAL / LOW)
 python demo/demo.py
 
-# Run evaluation
+# Run evaluation suite
 python eval/run_eval.py
 ```
-
-The Streamlit UI (`Home.py`) provides a browser interface with color-coded confidence badges (green / amber / red), three preset query buttons, inline source citations, and escalation warnings for LOW-confidence routes.
 
 ---
 
 ## Data Sources
 
+**HVAC domain:**
+
 | Collection | What | Where to get it |
 |------------|------|-----------------|
-| `osha` | OSHA Field Operations Manual, 29 CFR 1910 | osha.gov (public domain) |
-| `manuals` | HVAC equipment manuals (Carrier, Trane, Lennox) | Manufacturer sites (public) |
+| `osha` | 29 CFR 1910.147 (Lockout/Tagout), 29 CFR 1910.303 (Electrical Safety) | osha.gov (public domain) |
+| `manuals` | HVAC equipment manuals (Carrier 48LC 2017/2023, Lennox SL280, Trane XR15) | Manufacturer sites (public) |
 | `job_history` | Synthetic job records | Run `generate_synthetic.py` |
+
+**Drone inspection domain:**
+
+| Collection | What | Where to get it |
+|------------|------|-----------------|
+| `inspection_records` | Synthetic drone inspection records | Run `generate_drone_data.py` |
+| `historical_baselines` | Historical baseline metrics per zone | Run `generate_drone_data.py` |
+| `compliance_docs` | OSHA 1926.452 scaffold safety | osha.gov (public domain) |
 
 ---
 
@@ -76,21 +103,33 @@ The Streamlit UI (`Home.py`) provides a browser interface with color-coded confi
 
 ```
 src/
-  ingest.py            # Document loading + Chroma indexing
-  retriever.py         # Vector similarity retrieval
-  confidence.py        # Confidence scoring and routing decision
-  degradation.py       # Graceful degradation routing (HIGH/PARTIAL/LOW)
-  assistant.py         # Main pipeline
-  generate_synthetic.py # Synthetic job history generation
+  assistant.py           # FieldServiceAssistant (HVAC) + SiteIntelligenceAgent (dual-domain)
+  classifier.py          # Rule-based + LLM fallback query classification
+  session_memory.py      # Zone/equipment/time entity tracking across turns
+  retriever.py           # Vector retrieval, spatial filter, conflict detection
+  confidence.py          # Confidence scoring + routing decision
+  degradation.py         # Graceful degradation (HIGH / PARTIAL / LOW)
+  llm.py                 # LLM wrapper (Anthropic / OpenAI / Gemini)
+  ingest.py              # Document loading + Chroma indexing (HVAC + Drone)
+  generate_synthetic.py  # Synthetic HVAC job history
+  generate_drone_data.py # Synthetic drone inspection data
+
+pages/
+  1_Ask_the_Agent.py     # Three-path confidence demo
+  2_View_the_Site.py     # Site overview
+  3_Inspect_a_Zone.py    # Drone agent + session memory trace
+  4_See_the_Proof.py     # Eval metrics dashboard
+  5_Find_the_Gaps.py     # Honesty report / coverage heatmap
+  6_Connect_the_Dots.py  # Memory graph finale
 
 eval/
-  ground_truth.json    # 50 known query-answer pairs
-  adversarial.json     # 20 queries with no correct answer in corpus
-  contradictions.json  # 15 contradiction scenarios
-  run_eval.py          # Evaluation runner
+  ground_truth.json      # 50 HVAC query-answer pairs
+  adversarial.json       # 20 out-of-corpus queries
+  contradictions.json    # 15 conflict scenarios
+  run_eval.py            # Evaluation runner
 
 demo/
-  demo.py              # CLI demo for live presentation
+  demo.py                # CLI demo for live presentation
 ```
 
 ---
@@ -100,7 +139,7 @@ demo/
 **Duplicate chunks in Chroma** (if ingest was run more than once):
 ```bash
 rm -rf data/chroma_db/
-python src/ingest.py
+python src/ingest.py --domain all
 ```
 Never run `ingest.py` twice without clearing `data/chroma_db/` first — each run appends to existing collections.
 

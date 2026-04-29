@@ -20,13 +20,24 @@ st.title("📊 See the Proof")
 st.caption("Step 4 · Ground truth / adversarial / contradiction scenarios")
 render_walkthrough_banner(
     4,
-    "You're checking the evidence before trusting the tool.",
-    "85 test cases measure whether the system answers known questions, refuses unknown ones, and flags contradictions.",
+    "📋 Don't trust a tool you can't test.",
+    "Here are 85 real test cases — questions with known right answers. See exactly what the system gets right, what it flags, and what it refuses to touch.",
 )
 
-st.info(
-    "Start here: filter to Adversarial → Failed. These are the near-misses: "
-    "queries the system should refuse instead of hallucinating."
+st.markdown(
+    """
+    <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-left:5px solid #1d4ed8;
+                border-radius:0 10px 10px 0;padding:0.85rem 1.1rem;margin-bottom:1rem;">
+      <p style="margin:0 0 0.2rem 0;color:#1d4ed8;font-size:0.7rem;font-weight:800;
+                text-transform:uppercase;letter-spacing:0.1em;">👉 Start here</p>
+      <p style="margin:0;color:#1A1A2E;font-size:0.92rem;line-height:1.55;">
+        Filter to <strong>Adversarial → Failed</strong>. These are the near-misses —
+        queries the system <em>should</em> refuse rather than guess. A standard LLM would
+        answer every one. This system doesn't.
+      </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
