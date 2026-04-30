@@ -15,7 +15,6 @@ from src.ui.shared import (
     render_source_expander,
     render_walkthrough_banner,
     render_walkthrough_progress,
-    render_why_it_matters,
 )
 
 st.set_page_config(page_title="Ask the Agent", page_icon="🔧", layout="wide")
@@ -79,8 +78,6 @@ def build_hvac_trace(result: dict) -> dict:
 
 render_walkthrough_progress(1)
 
-with st.sidebar:
-    render_why_it_matters("hvac")
 
 # ---------------------------------------------------------------------------
 # Header + banner

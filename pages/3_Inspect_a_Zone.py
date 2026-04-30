@@ -15,7 +15,6 @@ from src.ui.shared import (
     render_source_expander,
     render_walkthrough_banner,
     render_walkthrough_progress,
-    render_why_it_matters,
 )
 
 st.set_page_config(page_title="Inspect a Zone", page_icon="🚁", layout="wide")
@@ -243,7 +242,6 @@ with st.sidebar:
         if st.button("Reset session", use_container_width=True):
             memory.reset()
             st.rerun()
-    render_why_it_matters("drone")
 
 # ---------------------------------------------------------------------------
 # Header + banner
