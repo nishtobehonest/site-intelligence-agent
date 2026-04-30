@@ -275,13 +275,11 @@ st.markdown("**Quick demos:**")
 if "drone_input" not in st.session_state:
     st.session_state["drone_input"] = st.session_state.get("drone_query", "")
 
-preset_query = None
 btn_cols = st.columns(4)
 for i, preset in enumerate(PRESETS):
     if btn_cols[i].button(preset["label"], use_container_width=True):
-        preset_query = preset["query"]
-        st.session_state["drone_query"] = preset_query
-        st.session_state["drone_input"] = preset_query
+        st.session_state["drone_query"] = preset["query"]
+        st.session_state["drone_input"] = preset["query"]
 
 st.markdown("")
 
@@ -300,7 +298,7 @@ with col_in:
     )
     submit = st.button("Ask", type="primary", use_container_width=True)
 
-active_query = preset_query or (query if submit else "")
+active_query = query if submit else ""
 
 if active_query.strip():
     agent = load_agent()

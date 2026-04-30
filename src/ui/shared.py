@@ -124,6 +124,7 @@ WALKTHROUGH_STEPS = [
     (4, "See the Proof",   "pages/4_See_the_Proof.py"),
     (5, "Find the Gaps",   "pages/5_Find_the_Gaps.py"),
     (6, "Connect the Dots","pages/6_Connect_the_Dots.py"),
+    (7, "How It Works",    "pages/7_How_It_Works.py"),
 ]
 
 

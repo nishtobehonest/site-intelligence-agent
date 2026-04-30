@@ -20,6 +20,11 @@ st.set_page_config(page_title="View the Site", page_icon="🗺️", layout="wide
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "raw" / "drone" / "inspection_records.json"
 SEVERITY_RANK = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+RISK_SCORE_LABELS = [
+    (2.25, "HIGH"),
+    (1.85, "MEDIUM"),
+    (0.00, "LOW"),
+]
 SEVERITY_COLORS = {
     "HIGH": ("#b91c1c", "#fef2f2"),
     "MEDIUM": ("#b45309", "#fffbeb"),
@@ -27,6 +32,13 @@ SEVERITY_COLORS = {
 }
 SEV_MARKER_COLORS = {"HIGH": "#dc2626", "MEDIUM": "#d97706", "LOW": "#16a34a"}
 SEV_MARKER_SIZES  = {"HIGH": 22, "MEDIUM": 18, "LOW": 16}
+DEMO_ZONE_COORDS = {
+    "Zone-A": (30.62, -98.28),   # Texas
+    "Zone-B": (33.45, -86.80),   # Alabama
+    "Zone-C": (39.92, -104.35),  # Colorado (hotspot)
+    "Zone-D": (47.55, -122.31),  # Washington
+    "Zone-E": (41.83, -87.63),   # Illinois
+}
 
 
 @st.cache_data
@@ -37,10 +49,22 @@ def load_records() -> list[dict]:
         return json.load(f)
 
 
-def worst_severity(records: list[dict]) -> str:
+def weighted_risk(records: list[dict]) -> tuple[str, float]:
+    """Classify zone risk from severity mix so one HIGH finding does not flatten the demo."""
     if not records:
-        return "LOW"
-    return max((r["severity"] for r in records), key=lambda s: SEVERITY_RANK.get(s, 0))
+        return "LOW", 0.0
+
+    counts = Counter(r["severity"] for r in records)
+    score = sum(SEVERITY_RANK.get(r["severity"], 0) for r in records) / len(records)
+    high_count = counts.get("HIGH", 0)
+    elevated_count = high_count + counts.get("MEDIUM", 0)
+    if high_count >= 3 and elevated_count / len(records) >= 0.65:
+        return "HIGH", score
+
+    for threshold, label in RISK_SCORE_LABELS:
+        if score >= threshold:
+            return label, score
+    return "LOW", score
 
 
 def parse_coordinates(value: str) -> tuple[float, float] | None:
@@ -53,7 +77,7 @@ def parse_coordinates(value: str) -> tuple[float, float] | None:
 
 
 def zone_summary(zone: str, zone_records: list[dict]) -> dict:
-    severity = worst_severity(zone_records)
+    severity, risk_score = weighted_risk(zone_records)
     counts = Counter(r["severity"] for r in zone_records)
     latest = max(zone_records, key=lambda r: r["flight_date"]) if zone_records else {}
     parsed_points = [parse_coordinates(r.get("coordinates", "")) for r in zone_records]
@@ -67,6 +91,7 @@ def zone_summary(zone: str, zone_records: list[dict]) -> dict:
         "zone": zone,
         "records": len(zone_records),
         "severity": severity,
+        "risk_score": risk_score,
         "counts": counts,
         "latest": latest,
         "lat": lat,
@@ -76,14 +101,15 @@ def zone_summary(zone: str, zone_records: list[dict]) -> dict:
 
 
 def site_zone_summaries(all_records: list[dict]) -> list[dict]:
-    by_site_zone: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    by_zone: dict[str, list[dict]] = defaultdict(list)
     for record in all_records:
-        by_site_zone[(record["site_id"], record["zone_id"])].append(record)
+        by_zone[record["zone_id"]].append(record)
 
     summaries = []
-    for (site_id, zone), site_zone_records in sorted(by_site_zone.items()):
-        summary = zone_summary(zone, site_zone_records)
-        summary["site_id"] = site_id
+    for zone, zone_records in sorted(by_zone.items()):
+        summary = zone_summary(zone, zone_records)
+        if zone in DEMO_ZONE_COORDS:
+            summary["lat"], summary["lon"] = DEMO_ZONE_COORDS[zone]
         summaries.append(summary)
     return summaries
 
@@ -99,7 +125,10 @@ def render_site_map_interactive(summaries: list[dict]) -> str | None:
         fig.add_trace(go.Scattermapbox(
             lat=[s["lat"] for s in rows],
             lon=[s["lon"] for s in rows],
-            mode="markers",
+            mode="markers+text",
+            text=[s["zone"] for s in rows],
+            textposition="top center",
+            textfont=dict(size=13, color="#1A1A2E"),
             marker=dict(
                 size=SEV_MARKER_SIZES[sev],
                 color=SEV_MARKER_COLORS[sev],
@@ -107,13 +136,15 @@ def render_site_map_interactive(summaries: list[dict]) -> str | None:
             hovertemplate=(
                 "<b>%{customdata[0]}</b>  ·  %{customdata[1]}<br>"
                 "Severity: <b>%{customdata[2]}</b><br>"
-                "Records: %{customdata[3]}<br>"
-                "HIGH: %{customdata[4]}  MED: %{customdata[5]}  LOW: %{customdata[6]}"
+                "Risk score: %{customdata[3]:.2f}<br>"
+                "Records: %{customdata[4]}<br>"
+                "HIGH: %{customdata[5]}  MED: %{customdata[6]}  LOW: %{customdata[7]}"
                 "<extra></extra>"
             ),
             customdata=[
                 [
                     s["zone"], s["site_id"], s["severity"],
+                    s["risk_score"],
                     s["records"],
                     s["counts"].get("HIGH", 0),
                     s["counts"].get("MEDIUM", 0),
@@ -132,7 +163,7 @@ def render_site_map_interactive(summaries: list[dict]) -> str | None:
         mapbox=dict(
             style="open-street-map",
             center=dict(lat=sum(lats) / len(lats), lon=sum(lons) / len(lons)),
-            zoom=5,
+            zoom=3.5,
         ),
         margin=dict(l=0, r=0, t=0, b=0),
         height=520,
@@ -141,6 +172,10 @@ def render_site_map_interactive(summaries: list[dict]) -> str | None:
             bgcolor="rgba(255,255,255,0.88)",
             bordercolor="#CBD5E1",
             borderwidth=1,
+            x=0.01,
+            y=0.99,
+            xanchor="left",
+            yanchor="top",
         ),
         clickmode="event+select",
     )
@@ -169,7 +204,7 @@ st.caption("Step 2 · Zoom out from one unit to the whole inspection site")
 render_walkthrough_banner(
     2,
     "🗺️ Here's your whole inspection site at a glance.",
-    "Every zone is color-coded by the worst problem found there — 🟢 all clear, 🟡 worth watching, 🔴 needs attention now. Zone C is in the red.",
+    "Every zone is color-coded by its weighted risk mix — 🟢 stable, 🟡 worth watching, 🔴 needs attention now. Zone C is the walkthrough hotspot.",
 )
 
 if not records:
@@ -258,18 +293,21 @@ else:
     c3.metric("Sites represented", len({r["site_id"] for r in zone_c_records}))
 
     if zone_c_records:
-        latest = zone_c_records[0]
-        severity = latest["severity"]
+        priority = max(
+            zone_c_records,
+            key=lambda r: (SEVERITY_RANK.get(r["severity"], 0), r["flight_date"]),
+        )
+        severity = priority["severity"]
         color, bg = SEVERITY_COLORS[severity]
         st.markdown(
             dedent(f"""
             <div style="background:{bg};border:1.5px solid {color};border-radius:8px;padding:1rem;margin-top:0.6rem;">
               <p style="margin:0 0 0.35rem 0;color:#6B7280;font-size:0.75rem;font-weight:800;
-                        letter-spacing:0.08em;text-transform:uppercase;">Latest Zone C finding</p>
-              <h4 style="margin:0;color:#1A1A2E;">{latest["record_id"]} · {latest["flight_date"]} · {latest["equipment_type"]}</h4>
-              <p style="margin:0.4rem 0;color:{color};font-weight:800;">{latest["anomaly_type"]} · {severity}</p>
+                        letter-spacing:0.08em;text-transform:uppercase;">Priority Zone C finding</p>
+              <h4 style="margin:0;color:#1A1A2E;">{priority["record_id"]} · {priority["flight_date"]} · {priority["equipment_type"]}</h4>
+              <p style="margin:0.4rem 0;color:{color};font-weight:800;">{priority["anomaly_type"]} · {severity}</p>
               <p style="margin:0;color:#4B5563;font-size:0.9rem;line-height:1.45;">
-                {latest["inspector_notes"][:520]}...
+                {priority["inspector_notes"][:520]}...
               </p>
             </div>
             """),
