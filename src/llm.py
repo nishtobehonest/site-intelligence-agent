@@ -16,21 +16,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def _resolve_provider() -> str:
-    explicit = os.getenv("LLM_PROVIDER", "").lower()
-    if explicit:
-        return explicit
-    if os.getenv("OPENAI_API_KEY"):
-        return "openai"
-    if os.getenv("GOOGLE_API_KEY"):
-        return "gemini"
-    if os.getenv("ANTHROPIC_API_KEY"):
-        return "anthropic"
-    return "anthropic"
-
-PROVIDER = _resolve_provider()
-MODEL = os.getenv("LLM_MODEL", "")
-
 _DEFAULTS = {
     "anthropic": "claude-3-5-sonnet-20241022",
     "openai": "gpt-4o",
@@ -38,8 +23,17 @@ _DEFAULTS = {
 }
 
 
-def _get_model() -> str:
-    return MODEL if MODEL else _DEFAULTS.get(PROVIDER, "")
+def _resolve_provider() -> str:
+    explicit = os.getenv("LLM_PROVIDER", "").lower()
+    if explicit:
+        return explicit
+    if os.getenv("GOOGLE_API_KEY"):
+        return "gemini"
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return "anthropic"
+    if os.getenv("OPENAI_API_KEY"):
+        return "openai"
+    return "anthropic"
 
 
 def generate(prompt: str, system: str = "") -> str:
@@ -53,17 +47,18 @@ def generate(prompt: str, system: str = "") -> str:
     Returns:
         The model's response as a plain string.
     """
-    model = _get_model()
+    provider = _resolve_provider()
+    model = os.getenv("LLM_MODEL", "") or _DEFAULTS.get(provider, "")
 
-    if PROVIDER == "anthropic":
+    if provider == "anthropic":
         return _anthropic(prompt, system, model)
-    elif PROVIDER == "openai":
+    elif provider == "openai":
         return _openai(prompt, system, model)
-    elif PROVIDER == "gemini":
+    elif provider == "gemini":
         return _gemini(prompt, system, model)
     else:
         raise ValueError(
-            f"Unknown LLM_PROVIDER '{PROVIDER}'. Choose from: anthropic, openai, gemini."
+            f"Unknown LLM_PROVIDER '{provider}'. Choose from: anthropic, openai, gemini."
         )
 
 
