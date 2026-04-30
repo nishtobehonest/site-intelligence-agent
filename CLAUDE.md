@@ -56,7 +56,11 @@ Or set these in `.env`. Raising `HIGH_THRESHOLD` reduces hallucination risk; rai
 
 ## Architecture
 
-The pipeline in `src/assistant.py:FieldServiceAssistant.ask()` runs four steps in sequence:
+Two classes in `src/assistant.py` share the same pipeline shape:
+- `FieldServiceAssistant` — Phase 1, HVAC-only, no classifier or session memory
+- `SiteIntelligenceAgent` — Phase 2, dual-domain, active entry point for the Streamlit app
+
+`SiteIntelligenceAgent.ask()` runs five steps in sequence:
 
 ```
 query
@@ -67,7 +71,7 @@ query
   → route()              # degradation.py: format final response based on route type
 ```
 
-The classifier step (Phase 2 addition) is domain-aware and runs two paths: rule-based keyword matching (~70% of queries, ~5ms, no LLM call) or LLM structured output for ambiguous queries (`classifier.py`).
+The classifier step is domain-aware and runs two paths: rule-based keyword matching (~70% of queries, ~5ms, no LLM call) or LLM structured output for ambiguous queries (`classifier.py`).
 
 **Six Chroma collections across two domains** — never merge within or across domains:
 - HVAC (Phase 1): `osha`, `manuals`, `job_history`
@@ -154,6 +158,8 @@ Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py --domain al
 
 **Drone eval (Phase 2 — not yet run):** Targets are ground truth > 80%, adversarial > 70%, classifier > 90% correct type routing. Eval files not yet built.
 
+**HVAC eval has been run** — results saved to `eval_results.csv` at repo root (final baseline metrics above).
+
 Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10–25%.
 
 ---
@@ -178,6 +184,7 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 | `src/retriever.py` spatial filter | ✅ Written — `build_spatial_filter()`, domain-aware `load_collections()` |
 | `src/assistant.py` dual-domain wiring | ✅ Done — `SiteIntelligenceAgent` class, drone system prompt, `parse_time_ref` complete |
 | Streamlit walkthrough app + session panel | ✅ Done — `Home.py`, `pages/1_Ask_the_Agent.py` through `pages/6_Connect_the_Dots.py` |
+| `src/ui/shared.py`, `src/ui/why_it_matters_content.py` | ✅ Done — Streamlit UI helper modules |
 | Drone eval suite | ⬜ Not started |
 | Regression check on HVAC evals | ⬜ Not started |
 
