@@ -16,7 +16,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROVIDER = os.getenv("LLM_PROVIDER", "anthropic").lower()
+def _resolve_provider() -> str:
+    explicit = os.getenv("LLM_PROVIDER", "").lower()
+    if explicit:
+        return explicit
+    if os.getenv("OPENAI_API_KEY"):
+        return "openai"
+    if os.getenv("GOOGLE_API_KEY"):
+        return "gemini"
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return "anthropic"
+    return "anthropic"
+
+PROVIDER = _resolve_provider()
 MODEL = os.getenv("LLM_MODEL", "")
 
 _DEFAULTS = {
