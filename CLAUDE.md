@@ -8,7 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A RAG-based Site Intelligence Agent. Technicians ask natural-language questions; the system retrieves from three Chroma document collections, scores confidence, and either answers with citations (HIGH), flags conflicting sources (PARTIAL), or escalates without calling the LLM (LOW). The graceful degradation layer is the core differentiator.
 
-**Phase 1 (HVAC) is complete and submitted.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, drone data layer, dual-domain `SiteIntelligenceAgent`, and multi-page Streamlit app are written; drone eval suite is next.
+**Phase 1 (HVAC) is complete.** Phase 2 (drone inspection domain) is in progress — classifier, session memory, drone data layer, dual-domain `SiteIntelligenceAgent`, and multi-page Streamlit app are written; drone eval suite is next.
+
+**Deployment:** Live on Streamlit Community Cloud. `Home.py` pre-warms `get_hvac_assistant()` via `@st.cache_resource` on load — embedding model and Chroma collections initialize while the user reads the landing page, not on first query. UptimeRobot pings the app every 30 min to prevent sleep. `packages.txt` adds `libsqlite3-dev` for chromadb on cold start.
 
 ---
 
@@ -160,7 +162,7 @@ Chroma DB lives at `./data/chroma_db/`. Re-run `python src/ingest.py --domain al
 
 **HVAC eval has been run** — results saved to `eval_results.csv` at repo root (final baseline metrics above).
 
-Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10–25%.
+Metric targets: hallucination < 2%, coverage > 80%, escalation 10–25%.
 
 ---
 
@@ -183,8 +185,8 @@ Metric targets for submission: hallucination < 2%, coverage > 80%, escalation 10
 | `src/session_memory.py` | ✅ Written — zone/equipment/time entity tracking |
 | `src/retriever.py` spatial filter | ✅ Written — `build_spatial_filter()`, domain-aware `load_collections()` |
 | `src/assistant.py` dual-domain wiring | ✅ Done — `SiteIntelligenceAgent` class, drone system prompt, `parse_time_ref` complete |
-| Streamlit walkthrough app + session panel | ✅ Done — `Home.py`, `pages/1_Ask_the_Agent.py` through `pages/6_Connect_the_Dots.py` |
-| `src/ui/shared.py`, `src/ui/why_it_matters_content.py` | ✅ Done — Streamlit UI helper modules |
+| Streamlit demo app + session panel | ✅ Done — `Home.py`, `pages/1_Ask_the_Agent.py` through `pages/7_How_It_Works.py` (7 pages) |
+| `src/ui/shared.py`, `src/ui/why_it_matters_content.py` | ✅ Done — Streamlit UI helper modules. Sidebar nav label is "Demo Tour"; design-rationale expander is "Design rationale" (not interviewer-specific). |
 | Drone eval suite | ⬜ Not started |
 | Regression check on HVAC evals | ⬜ Not started |
 
