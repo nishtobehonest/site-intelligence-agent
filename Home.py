@@ -75,7 +75,7 @@ with content:
         f"""
         <p style="color:{ACCENT};font-size:0.77rem;font-weight:800;letter-spacing:0.14em;
                   text-transform:uppercase;margin:1.75rem 0 0.65rem 0;">
-          Site Intelligence Agent &nbsp;·&nbsp; Cornell MEM Capstone &nbsp;·&nbsp; April 2026
+          Site Intelligence Agent &nbsp;·&nbsp; Built by Nishchay Vishwanath
         </p>
         """,
         unsafe_allow_html=True,
