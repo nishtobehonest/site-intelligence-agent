@@ -7,8 +7,8 @@ No tabs — just the agent. Route-specific aha callouts after each result.
 
 import os
 import streamlit as st
-from src.assistant import FieldServiceAssistant
 from src.ui.shared import (
+    get_hvac_assistant,
     confidence_badge_html,
     render_escalation_warning,
     render_next_step,
@@ -37,11 +37,6 @@ PRESETS = [
         "query": "What are the repair procedures for a Daikin VRV system model DX300?",
     },
 ]
-
-
-@st.cache_resource(show_spinner="Loading HVAC knowledge base...")
-def load_assistant():
-    return FieldServiceAssistant()
 
 
 def build_hvac_trace(result: dict) -> dict:
@@ -130,7 +125,7 @@ with col_out:
     active_query = query if submit else ""
 
     if active_query.strip():
-        assistant = load_assistant()
+        assistant = get_hvac_assistant()
 
         with st.spinner("Retrieving documents and scoring confidence..."):
             result = assistant.ask(active_query)
