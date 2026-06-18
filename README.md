@@ -2,7 +2,7 @@
 
 > An AI assistant that gives frontline field workers instant access to expert knowledge — and knows when to say "I don't know."
 
-**Built during Cornell MEM · Nishchay Vishwanath · May 2026**
+**[Live Demo →](https://site-intelligence-agent.streamlit.app)** &nbsp;|&nbsp; **Built by [Nishchay Vishwanath](https://github.com/nishtobehonest) · 2026**
 
 `Phase 1 — HVAC ✅ Complete` &nbsp;|&nbsp; `Phase 2 — Drone Inspection 🔄 In Progress` &nbsp;|&nbsp; `Phase 3 — Multi-Graph 📋 Planned` &nbsp;|&nbsp; `Phase 4 — User Validation 👥 Planned`
 
@@ -190,13 +190,6 @@ Tested against 85 labeled cases across three test sets (HVAC domain, Phase 1):
 | **Phase 4** | User validation | 👥 Planned | Interview HVAC technicians and site inspectors; validate query patterns, confidence routing decisions, and escalation UX against real workflows; identify corpus gaps |
 | **Phase 5** | MAGMA multi-graph backend | 🔭 Vision | Full Temporal / Causal / Entity graph reasoning (Jiang et al., 2026), tool-use agent loops |
 
-**Phase 2 exit criteria:**
-- [ ] Classifier routes > 90% of queries by correct type
-- [ ] Zone-C query returns only Zone-C records (spatial filter verified)
-- [ ] Session memory resolves "what about last month?" correctly
-- [x] Both HVAC and Drone demoable from same Streamlit app
-- [ ] Drone eval: ground truth > 80%, adversarial > 70%
-- [ ] Phase 1 HVAC evals still pass (regression)
 
 ---
 
