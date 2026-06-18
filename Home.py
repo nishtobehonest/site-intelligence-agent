@@ -112,7 +112,7 @@ with content:
         <div style="background:{SECONDARY};border:1.5px solid {BORDER};border-radius:10px;
                     padding:0.9rem 1.15rem;margin:0 0 1.8rem 0;max-width:560px;">
           <p style="font-size:0.72rem;font-weight:800;letter-spacing:0.11em;text-transform:uppercase;
-                    color:{ACCENT};margin:0 0 0.35rem 0;">Your persona for this walkthrough</p>
+                    color:{ACCENT};margin:0 0 0.35rem 0;">The scenario</p>
           <p style="font-size:1.0rem;font-weight:700;color:{TEXT};margin:0 0 0.25rem 0;">
             Marcus — HVAC Field Technician, 3 years in
           </p>
@@ -168,7 +168,7 @@ with content:
     # CTA — primary styled button
     cta_col, _ = st.columns([1, 2])
     with cta_col:
-        if st.button("Begin Walkthrough →", type="primary", use_container_width=True):
+        if st.button("Explore the Demo →", type="primary", use_container_width=True):
             if hasattr(st, "switch_page"):
                 st.switch_page("pages/1_Ask_the_Agent.py")
             else:

@@ -204,7 +204,7 @@ st.caption("Step 2 · Zoom out from one unit to the whole inspection site")
 render_walkthrough_banner(
     2,
     "🗺️ Here's your whole inspection site at a glance.",
-    "Every zone is color-coded by its weighted risk mix — 🟢 stable, 🟡 worth watching, 🔴 needs attention now. Zone C is the walkthrough hotspot.",
+    "Every zone is color-coded by its weighted risk mix — 🟢 stable, 🟡 worth watching, 🔴 needs attention now. Zone C is where the action is.",
 )
 
 if not records:
@@ -283,7 +283,7 @@ else:
             )
 
     st.markdown("---")
-    st.subheader("Zone C is the walkthrough hotspot")
+    st.subheader("Zone C — the most active zone")
 
     zone_c_records = sorted(by_zone.get("Zone-C", []), key=lambda r: r["flight_date"], reverse=True)
     c1, c2, c3 = st.columns(3)
