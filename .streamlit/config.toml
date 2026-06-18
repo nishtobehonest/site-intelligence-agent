@@ -8,3 +8,7 @@ font = "sans serif"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# Raise the websocket max message size for large response payloads
+maxMessageSize = 50

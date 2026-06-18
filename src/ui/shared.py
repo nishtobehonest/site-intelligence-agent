@@ -6,6 +6,13 @@ UI helpers shared across all walkthrough pages.
 
 import streamlit as st
 
+
+@st.cache_resource(show_spinner=False)
+def get_hvac_assistant():
+    """Load and cache the HVAC assistant. Shared across Home.py and all pages."""
+    from src.assistant import FieldServiceAssistant
+    return FieldServiceAssistant()
+
 # ---------------------------------------------------------------------------
 # Agent registry
 # ---------------------------------------------------------------------------

@@ -20,6 +20,12 @@ st.set_page_config(
     layout="wide",
 )
 
+# Pre-warm the assistant on home page load so the first query on page 1 is instant.
+# get_hvac_assistant() is @st.cache_resource — only runs once per server lifecycle.
+from src.ui.shared import get_hvac_assistant as _get_hvac_assistant
+with st.spinner("Starting up knowledge base — takes ~30 s on first load..."):
+    _get_hvac_assistant()
+
 ACCENT       = "#0086A8"
 TEXT         = "#1A1A2E"
 MUTED        = "#6B7280"
