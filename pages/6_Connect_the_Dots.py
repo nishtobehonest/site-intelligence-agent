@@ -221,7 +221,7 @@ st.markdown(
         2 domains &nbsp;·&nbsp; 0 guesses on LOW-confidence queries
       </p>
       <p style="color:{TEXT};font-weight:700;margin:0 0 0.25rem 0;">
-        Nishchay Vishwanath &nbsp;·&nbsp; Cornell MEM 2026
+        Nishchay Vishwanath
       </p>
       <p style="margin:0;">
         <a href="https://github.com/nishtobehonest/site-intelligence-agent"
