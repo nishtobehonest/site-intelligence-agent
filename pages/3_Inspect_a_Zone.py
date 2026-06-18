@@ -248,7 +248,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 
 st.title("🚁 Inspect a Zone")
-st.caption("Step 3 · Classifier agent + spatial filters + session memory")
+st.caption("Classifier agent + spatial filters + session memory")
 
 render_walkthrough_banner(
     3,

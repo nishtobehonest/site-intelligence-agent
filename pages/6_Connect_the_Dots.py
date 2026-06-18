@@ -38,7 +38,7 @@ BLUE_BORDER  = "#93c5fd"
 render_walkthrough_progress(6)
 
 st.title("🕸️ Connect the Dots")
-st.caption("Step 6 · How the system links inspections across time, zone, cause, and responsibility")
+st.caption("How the system links inspections across time, zone, cause, and responsibility")
 
 render_walkthrough_banner(
     6,

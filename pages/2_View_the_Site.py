@@ -200,7 +200,7 @@ for record in records:
 render_walkthrough_progress(2)
 
 st.title("🗺️ View the Site")
-st.caption("Step 2 · Zoom out from one unit to the whole inspection site")
+st.caption("Zoom out from one unit to the whole inspection site")
 render_walkthrough_banner(
     2,
     "🗺️ Here's your whole inspection site at a glance.",

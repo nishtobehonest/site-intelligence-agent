@@ -116,7 +116,7 @@ def render_why_it_matters(agent_key: str) -> None:
     agent = AGENTS.get(agent_key, {})
     why = agent.get("why_it_matters", "")
     if why:
-        with st.expander("Why this matters (for interviewers)", expanded=False):
+        with st.expander("Design rationale", expanded=False):
             st.markdown(why)
 
 
@@ -142,7 +142,7 @@ def render_walkthrough_progress(current_step: int) -> None:
         st.markdown(
             f'<p style="color:{MUTED};font-size:0.72rem;font-weight:800;'
             f'letter-spacing:0.12em;text-transform:uppercase;margin:0.1rem 0 0.6rem 0;">'
-            f'Walkthrough</p>',
+            f'Demo Tour</p>',
             unsafe_allow_html=True,
         )
         for step, label, path in WALKTHROUGH_STEPS:

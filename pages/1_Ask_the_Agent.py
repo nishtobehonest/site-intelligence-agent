@@ -79,7 +79,7 @@ render_walkthrough_progress(1)
 # ---------------------------------------------------------------------------
 
 st.title("🔧 Ask the Agent")
-st.caption("Step 1 · Learn the three confidence-routing paths")
+st.caption("Learn the three confidence-routing paths")
 
 render_walkthrough_banner(
     1,

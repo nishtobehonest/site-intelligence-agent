@@ -216,7 +216,7 @@ for record in records:
 render_walkthrough_progress(5)
 
 st.title("🧭 Find the Gaps")
-st.caption("Step 5 · The Honesty Report")
+st.caption("The Honesty Report")
 
 render_walkthrough_banner(
     5,

@@ -675,3 +675,11 @@ with p3:
 # ── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.page_link("Home.py", label="← Back to walkthrough home")
+st.markdown("---")
+st.markdown(
+    '<p style="color:#6B7280;font-size:0.82rem;text-align:center;margin:0.5rem 0 0 0;">'
+    'Built by <a href="https://github.com/nishtobehonest" style="color:#0086A8;text-decoration:none;">Nishchay Vishwanath</a>'
+    ' &nbsp;·&nbsp; <a href="https://github.com/nishtobehonest/site-intelligence-agent" style="color:#0086A8;text-decoration:none;">GitHub ↗</a>'
+    '</p>',
+    unsafe_allow_html=True,
+)

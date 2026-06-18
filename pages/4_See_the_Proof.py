@@ -17,7 +17,7 @@ CSV_PATH = Path(__file__).parent.parent / "eval_results.csv"
 render_walkthrough_progress(4)
 
 st.title("📊 See the Proof")
-st.caption("Step 4 · Ground truth / adversarial / contradiction scenarios")
+st.caption("Ground truth / adversarial / contradiction scenarios")
 render_walkthrough_banner(
     4,
     "📋 Don't trust a tool you can't test.",
