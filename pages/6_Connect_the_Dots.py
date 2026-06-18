@@ -241,4 +241,4 @@ if st.button("← Start over", type="secondary"):
     if hasattr(st, "switch_page"):
         st.switch_page("Home.py")
     else:
-        st.success("Walkthrough state cleared. Click **Home** in the sidebar to restart.")
+        st.success("Session cleared. Click **Home** in the sidebar to start over.")

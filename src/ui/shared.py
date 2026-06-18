@@ -182,10 +182,9 @@ def render_walkthrough_banner(step: int, persona_line: str, plain_english: str) 
                         border-radius:0 12px 12px 0;
                         padding:0.85rem 1.2rem;margin:0 0 1.1rem 0;">
               <div style="display:flex;align-items:center;gap:0.65rem;margin-bottom:0.45rem;flex-wrap:wrap;">
-                <span style="background:{ACCENT};color:white;font-size:0.67rem;font-weight:800;
-                             padding:0.18rem 0.6rem;border-radius:999px;letter-spacing:0.04em;
-                             white-space:nowrap;flex-shrink:0;">
-                  Step {step} / 6
+                <span style="color:{MUTED};font-size:0.72rem;font-weight:700;
+                             letter-spacing:0.04em;white-space:nowrap;flex-shrink:0;">
+                  {step} of 6
                 </span>
                 <div style="display:flex;align-items:center;">{dots_html}</div>
               </div>
